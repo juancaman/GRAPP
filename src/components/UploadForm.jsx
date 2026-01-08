@@ -95,9 +95,7 @@ export default function UploadForm({ isOpen, onClose }) {
                 user_id: user?.id || null,
                 image_url: imageUrl,
                 lat: -34.6083 + (Math.random() - 0.5) * 0.01,
-                lng: -58.9392 + (Math.random() - 0.5) * 0.01,
-                timestamp: new Date().toISOString(),
-                created_at: new Date().toISOString()
+                lng: -58.9392 + (Math.random() - 0.5) * 0.01
             };
 
             const { data, error: insertError } = await supabase
