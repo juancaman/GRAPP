@@ -10,6 +10,13 @@ const CATEGORIES = [
     { id: 'Basural/Pasto', label: 'Limpieza', icon: '🌱', color: 'var(--cat-basural)' }
 ];
 
+// Basic moderation function
+function containsBadWords(text) {
+    if (!text) return false;
+    const badWords = ['insulto1', 'insulto2', 'palabrota']; // Add actual bad words if needed
+    return badWords.some(word => text.toLowerCase().includes(word));
+}
+
 export default function UploadForm({ isOpen, onClose }) {
     const { setPosts, selectedBarrio, user } = useApp();
     const [step, setStep] = useState(1);
@@ -35,6 +42,11 @@ export default function UploadForm({ isOpen, onClose }) {
     };
 
     const handleSubmit = async () => {
+        if (!formData.title.trim() || !formData.description.trim()) {
+            alert('Por favor, completa el título y la descripción.');
+            return;
+        }
+
         // Moderation check
         if (containsBadWords(formData.title) || containsBadWords(formData.description)) {
             alert('Tu publicación contiene lenguaje inapropiado y no puede ser publicada. Por favor, sé respetuoso.');
@@ -153,34 +165,34 @@ export default function UploadForm({ isOpen, onClose }) {
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '0.5rem', 
-                            padding: '0.75rem', 
-                            backgroundColor: '#eff6ff', 
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem',
+                            backgroundColor: '#eff6ff',
                             borderRadius: '12px',
                             marginBottom: '0.5rem',
                             color: 'var(--primary)',
                             fontWeight: 600
                         }}>
                             <span>Publicando en:</span>
-                            <span style={{ 
-                                backgroundColor: 'white', 
-                                padding: '0.25rem 0.75rem', 
-                                borderRadius: '999px', 
+                            <span style={{
+                                backgroundColor: 'white',
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '999px',
                                 fontSize: '0.85rem',
                                 border: '1px solid #bfdbfe'
                             }}>
                                 {CATEGORIES.find(c => c.id === formData.category)?.icon} {CATEGORIES.find(c => c.id === formData.category)?.label}
                             </span>
-                            <button 
+                            <button
                                 onClick={() => setStep(1)}
-                                style={{ 
-                                    marginLeft: 'auto', 
-                                    border: 'none', 
-                                    background: 'none', 
-                                    color: 'var(--text-muted)', 
+                                style={{
+                                    marginLeft: 'auto',
+                                    border: 'none',
+                                    background: 'none',
+                                    color: 'var(--text-muted)',
                                     fontSize: '0.8rem',
                                     textDecoration: 'underline',
                                     cursor: 'pointer'
