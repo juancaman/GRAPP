@@ -18,7 +18,7 @@ function containsBadWords(text) {
 }
 
 export default function UploadForm({ isOpen, onClose }) {
-    const { setPosts, selectedBarrio, user } = useApp();
+    const { setPosts, selectedBarrio, user, createPost } = useApp();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [imageFile, setImageFile] = useState(null);
@@ -63,80 +63,41 @@ export default function UploadForm({ isOpen, onClose }) {
             return;
         }
 
-        setLoading(true);
-        try {
-            let imageUrl = null;
+        // --- OPTIMISTIC UI START ---
+        // Prepare final post data
+        const postToCreate = {
+            category: formData.category,
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            price: formData.price ? parseFloat(formData.price) : null,
+            is_anonymous: formData.isAnonymous,
+            barrio: selectedBarrio === 'Todos los Barrios' ? 'Centro' : selectedBarrio,
+            author: formData.isAnonymous ? 'Anónimo' : (user?.email?.split('@')[0] || 'Vecino'),
+            user_id: user?.id || null,
+            lat: -34.6083 + (Math.random() - 0.5) * 0.01,
+            lng: -58.9392 + (Math.random() - 0.5) * 0.01
+        };
 
-            if (imageFile) {
-                const fileExt = imageFile.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await supabase.storage
-                    .from('posts')
-                    .upload(fileName, imageFile);
+        // Call background creator
+        createPost(postToCreate, imageFile);
 
-                if (uploadError) throw new Error(`Error al subir imagen: ${uploadError.message}`);
+        // CLOSE INSTANTLY
+        onClose();
 
-                const { data: { publicUrl } } = supabase.storage
-                    .from('posts')
-                    .getPublicUrl(fileName);
-
-                imageUrl = publicUrl;
-            }
-
-            const newPost = {
-                category: formData.category,
-                title: formData.title.trim(),
-                description: formData.description.trim(),
-                price: formData.price ? parseFloat(formData.price) : null,
-                is_anonymous: formData.isAnonymous,
-                barrio: selectedBarrio === 'Todos los Barrios' ? 'Centro' : selectedBarrio,
-                votes: 0,
-                author: formData.isAnonymous ? 'Anónimo' : (user?.email?.split('@')[0] || 'Vecino'),
-                user_id: user?.id || null,
-                image_url: imageUrl,
-                lat: -34.6083 + (Math.random() - 0.5) * 0.01,
-                lng: -58.9392 + (Math.random() - 0.5) * 0.01
-            };
-
-            const { data, error: insertError } = await supabase
-                .from('posts')
-                .insert([newPost])
-                .select();
-
-            if (insertError) {
-                console.error('Submit error:', insertError);
-                throw new Error(`Error de base de datos: ${insertError.message} (Código: ${insertError.code})`);
-            }
-
-            if (data && data.length > 0) {
-                // Manually add the new post to the local state for instant feedback
-                setPosts(prev => [data[0], ...prev]);
-
-                // Close the modal and reset immediately
-                onClose();
-
-                // Reset form state for next time
-                setTimeout(() => {
-                    setFormData({
-                        category: '',
-                        title: '',
-                        description: '',
-                        price: '',
-                        isAnonymous: false
-                    });
-                    setStep(1);
-                    setImageFile(null);
-                    setPreviewUrl(null);
-                }, 500);
-            } else {
-                throw new Error('No se recibió confirmación del servidor al publicar.');
-            }
-        } catch (error) {
-            console.error('Error in handleSubmit:', error);
-            alert('Hubo un error al publicar: ' + error.message);
-        } finally {
+        // Reset for next time (after close animation)
+        setTimeout(() => {
+            setFormData({
+                category: '',
+                title: '',
+                description: '',
+                price: '',
+                isAnonymous: false
+            });
+            setStep(1);
+            setImageFile(null);
+            setPreviewUrl(null);
             setLoading(false);
-        }
+        }, 500);
     };
 
     return (

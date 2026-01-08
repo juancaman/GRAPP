@@ -123,6 +123,59 @@ export function AppProvider({ children }) {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
+  // Logic for creating posts (Optimistic)
+  const createPost = async (formData, imageFile) => {
+    const optimisticId = Date.now();
+    const optimisticPost = {
+      id: optimisticId,
+      ...formData,
+      votes: 0,
+      created_at: new Date().toISOString(),
+      is_optimistic: true // To handle UI states if needed
+    };
+
+    // 1. Add to state immediately
+    setPosts(prev => [optimisticPost, ...prev]);
+
+    // 2. Process in background
+    const processUpload = async () => {
+      try {
+        let imageUrl = null;
+        if (imageFile) {
+          const fileExt = imageFile.name.split('.').pop();
+          const fileName = `${Date.now()}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from('posts')
+            .upload(fileName, imageFile);
+
+          if (uploadError) throw uploadError;
+          const { data: { publicUrl } } = supabase.storage.from('posts').getPublicUrl(fileName);
+          imageUrl = publicUrl;
+        }
+
+        const { data, error } = await supabase
+          .from('posts')
+          .insert([{ ...formData, image_url: imageUrl }])
+          .select();
+
+        if (error) throw error;
+
+        // Replace optimistic post with real one
+        setPosts(current =>
+          current.map(p => p.id === optimisticId ? data[0] : p)
+        );
+      } catch (err) {
+        console.error('Background upload failed:', err);
+        // Remove optimistic post if it failed COMPLETELY
+        setPosts(current => current.filter(p => p.id !== optimisticId));
+        alert('No se pudo subir tu aviso. Revisa tu conexión.');
+      }
+    };
+
+    processUpload(); // Don't await
+    return { success: true };
+  };
+
   // Logic for voting "Me sirve"
   const votePost = async (postId) => {
     // Optimistic update
@@ -239,7 +292,8 @@ export function AppProvider({ children }) {
     setIsGpsMode,
     deletePost,
     fetchComments,
-    addComment
+    addComment,
+    createPost
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
