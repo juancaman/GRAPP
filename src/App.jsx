@@ -60,7 +60,7 @@ function AppContent() {
           }}
         >
           <LayoutList size={20} />
-          Feed
+          Publicar
         </button>
         <button
           onClick={() => setView('map')}
