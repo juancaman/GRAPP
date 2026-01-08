@@ -42,7 +42,12 @@ export default function UploadForm({ isOpen, onClose }) {
     };
 
     const handleSubmit = async () => {
-        if (!formData.title.trim() || !formData.description.trim()) {
+        // Validation
+        if (!formData.category) {
+            alert('Por favor, selecciona una categoría primero.');
+            return;
+        }
+        if (!formData.title?.trim() || !formData.description?.trim()) {
             alert('Por favor, completa el título y la descripción.');
             return;
         }
@@ -59,9 +64,9 @@ export default function UploadForm({ isOpen, onClose }) {
         }
 
         setLoading(true);
-        let imageUrl = null;
-
         try {
+            let imageUrl = null;
+
             if (imageFile) {
                 const fileExt = imageFile.name.split('.').pop();
                 const fileName = `${Date.now()}.${fileExt}`;
@@ -69,7 +74,7 @@ export default function UploadForm({ isOpen, onClose }) {
                     .from('posts')
                     .upload(fileName, imageFile);
 
-                if (uploadError) throw uploadError;
+                if (uploadError) throw new Error(`Error al subir imagen: ${uploadError.message}`);
 
                 const { data: { publicUrl } } = supabase.storage
                     .from('posts')
@@ -80,36 +85,52 @@ export default function UploadForm({ isOpen, onClose }) {
 
             const newPost = {
                 category: formData.category,
-                title: formData.title,
-                description: formData.description,
-                price: formData.price,
-                is_anonymous: formData.isAnonymous, // Fix: camelCase to snake_case
+                title: formData.title.trim(),
+                description: formData.description.trim(),
+                price: formData.price ? parseFloat(formData.price) : null,
+                is_anonymous: formData.isAnonymous,
                 barrio: selectedBarrio === 'Todos los Barrios' ? 'Centro' : selectedBarrio,
                 votes: 0,
                 author: formData.isAnonymous ? 'Anónimo' : (user?.email?.split('@')[0] || 'Vecino'),
-                user_id: user?.id,
+                user_id: user?.id || null,
                 image_url: imageUrl,
                 lat: -34.6083 + (Math.random() - 0.5) * 0.01,
                 lng: -58.9392 + (Math.random() - 0.5) * 0.01,
+                timestamp: new Date().toISOString(),
+                created_at: new Date().toISOString()
             };
 
-            const { data, error } = await supabase
+            const { data, error: insertError } = await supabase
                 .from('posts')
                 .insert([newPost])
-                .select(); // Important: Return the inserted row
+                .select();
 
-            if (error) throw error;
-
-            // Manually update state to show post immediately (in case Realtime is off)
-            if (data && data.length > 0) {
-                setPosts(prev => [data[0], ...prev]);
+            if (insertError) {
+                console.error('Submit error:', insertError);
+                throw new Error(`Error de base de datos: ${insertError.message} (Código: ${insertError.code})`);
             }
 
-            onClose();
-            alert('¡Publicación creada con éxito!');
+            if (data && data.length > 0) {
+                setPosts(prev => [data[0], ...prev]);
+                onClose();
+                alert('¡Publicación creada con éxito! 🚀');
+                // Reset form
+                setFormData({
+                    category: '',
+                    title: '',
+                    description: '',
+                    price: '',
+                    isAnonymous: false
+                });
+                setStep(1);
+                setImageFile(null);
+                setPreviewUrl(null);
+            } else {
+                throw new Error('No se recibió confirmación del servidor al publicar.');
+            }
         } catch (error) {
-            console.error('Error:', error);
-            alert('Hubo un error: ' + error.message);
+            console.error('Error in handleSubmit:', error);
+            alert('Hubo un error al publicar: ' + error.message);
         } finally {
             setLoading(false);
         }
