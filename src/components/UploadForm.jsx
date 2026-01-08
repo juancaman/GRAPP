@@ -35,6 +35,12 @@ export default function UploadForm({ isOpen, onClose }) {
     };
 
     const handleSubmit = async () => {
+        // Moderation check
+        if (containsBadWords(formData.title) || containsBadWords(formData.description)) {
+            alert('Tu publicación contiene lenguaje inapropiado y no puede ser publicada. Por favor, sé respetuoso.');
+            return;
+        }
+
         if (!user && !formData.isAnonymous) {
             alert('Debes iniciar sesión para publicar con tu nombre. O elige "Publicar de forma anónima".');
             return;
@@ -136,7 +142,8 @@ export default function UploadForm({ isOpen, onClose }) {
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '0.5rem',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.1s'
                                 }}
                             >
                                 <span style={{ fontSize: '2rem' }}>{cat.icon}</span>
@@ -146,6 +153,42 @@ export default function UploadForm({ isOpen, onClose }) {
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '0.5rem', 
+                            padding: '0.75rem', 
+                            backgroundColor: '#eff6ff', 
+                            borderRadius: '12px',
+                            marginBottom: '0.5rem',
+                            color: 'var(--primary)',
+                            fontWeight: 600
+                        }}>
+                            <span>Publicando en:</span>
+                            <span style={{ 
+                                backgroundColor: 'white', 
+                                padding: '0.25rem 0.75rem', 
+                                borderRadius: '999px', 
+                                fontSize: '0.85rem',
+                                border: '1px solid #bfdbfe'
+                            }}>
+                                {CATEGORIES.find(c => c.id === formData.category)?.icon} {CATEGORIES.find(c => c.id === formData.category)?.label}
+                            </span>
+                            <button 
+                                onClick={() => setStep(1)}
+                                style={{ 
+                                    marginLeft: 'auto', 
+                                    border: 'none', 
+                                    background: 'none', 
+                                    color: 'var(--text-muted)', 
+                                    fontSize: '0.8rem',
+                                    textDecoration: 'underline',
+                                    cursor: 'pointer'
+                                }}>
+                                Cambiar
+                            </button>
+                        </div>
+
                         <div style={{ position: 'relative' }}>
                             <input
                                 type="file"
@@ -217,7 +260,7 @@ export default function UploadForm({ isOpen, onClose }) {
                             style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', height: '100px' }}
                         />
 
-                        {formData.category === 'Precios Bajos' && (
+                        {(formData.category === 'Precios Bajos' || formData.category === 'Servicios/Changas') && (
                             <input
                                 type="number"
                                 placeholder="Precio (Opcional)"

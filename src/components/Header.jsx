@@ -36,7 +36,7 @@ export default function Header() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <h1 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1 }}>
-                            Rodríguez <span style={{ color: 'var(--primary)' }}>Conecta</span>
+                            yo te <span style={{ color: 'var(--primary)' }}>avisé</span>
                         </h1>
                         {user && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Hola, {user.email.split('@')[0]}</span>}
                     </div>

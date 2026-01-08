@@ -4,7 +4,9 @@ import Header from './components/Header';
 import Feed from './components/Feed';
 import MapView from './components/MapView';
 import UploadForm from './components/UploadForm';
-import { Plus, LayoutList, Map as MapIcon } from 'lucide-react';
+import UsefulPhones from './components/UsefulPhones';
+import PharmacyGuide from './components/PharmacyGuide';
+import { Plus, LayoutList, Map as MapIcon, Phone, Pill } from 'lucide-react';
 import './styles/index.css';
 
 function AppContent() {
@@ -16,7 +18,10 @@ function AppContent() {
       <Header />
 
       <main style={{ flex: 1 }}>
-        {view === 'feed' ? <Feed /> : <MapView />}
+        {view === 'feed' && <Feed />}
+        {view === 'map' && <MapView />}
+        {view === 'phones' && <UsefulPhones />}
+        {view === 'pharmacies' && <PharmacyGuide />}
       </main>
 
       <div className="fab" onClick={() => setIsUploadOpen(true)}>
@@ -66,13 +71,47 @@ function AppContent() {
             flexDirection: 'column',
             alignItems: 'center',
             gap: '4px',
-            fontSize: '0.75rem',
+            fontSize: '0.7rem',
             fontWeight: view === 'map' ? 700 : 500,
             color: view === 'map' ? 'var(--primary)' : 'var(--text-muted)'
           }}
         >
-          <MapIcon size={20} />
+          <MapIcon size={18} />
           Mapa
+        </button>
+        <button
+          onClick={() => setView('phones')}
+          style={{
+            background: 'none',
+            border: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '0.7rem',
+            fontWeight: view === 'phones' ? 700 : 500,
+            color: view === 'phones' ? 'var(--primary)' : 'var(--text-muted)'
+          }}
+        >
+          <Phone size={18} />
+          Teléfonos
+        </button>
+        <button
+          onClick={() => setView('pharmacies')}
+          style={{
+            background: 'none',
+            border: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '0.7rem',
+            fontWeight: view === 'pharmacies' ? 700 : 500,
+            color: view === 'pharmacies' ? 'var(--primary)' : 'var(--text-muted)'
+          }}
+        >
+          <Pill size={18} />
+          Farmacias
         </button>
       </nav>
     </div>
@@ -86,4 +125,3 @@ export default function App() {
     </AppProvider>
   );
 }
-
