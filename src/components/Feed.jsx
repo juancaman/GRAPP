@@ -9,7 +9,12 @@ function PostCard({ post }) {
     const [newComment, setNewComment] = React.useState('');
     const [loadingComments, setLoadingComments] = React.useState(false);
 
-    const isAuthor = user && post.user_id === user.id;
+    // Robust authorship check
+    const isAuthor = React.useMemo(() => {
+        if (!user || !post.user_id) return false;
+        // Compare as strings and handle potential nulls/undefined
+        return user.id.toString() === post.user_id.toString();
+    }, [user, post.user_id]);
 
     const handleReport = async () => {
         const reason = window.prompt('¿Por qué quieres reportar este aviso? (Spam, Inapropiado, Falso, etc.)');

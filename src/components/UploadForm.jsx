@@ -1,7 +1,36 @@
-import React, { useState } from 'react';
-import { supabase } from '../supabase/client';
-import { useApp } from '../context/AppContext';
-import { Camera, X, MapPin, Send } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default marker icons in Leaflet + React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Helper component for picking location
+function LocationPicker({ position, setPosition }) {
+    useMapEvents({
+        click(e) {
+            setPosition(e.latlng);
+        },
+    });
+
+    return position ? <Marker position={position} draggable={true} eventHandlers={{
+        dragend: (e) => setPosition(e.target.getLatLng())
+    }} /> : null;
+}
+
+// Ensure map centers on user if they haven't picked yet
+function MapRecenter({ position }) {
+    const map = useMap();
+    React.useEffect(() => {
+        if (position) map.setView(position, 15);
+    }, [position, map]);
+    return null;
+}
 
 const CATEGORIES = [
     { id: 'Precios Bajos', label: 'Oferta', icon: '💰', color: 'var(--cat-precios)' },
@@ -18,11 +47,12 @@ function containsBadWords(text) {
 }
 
 export default function UploadForm({ isOpen, onClose }) {
-    const { setPosts, selectedBarrio, user, createPost } = useApp();
+    const { setPosts, selectedBarrio, user, createPost, userLocation } = useApp();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [location, setLocation] = useState(null);
     const [formData, setFormData] = useState({
         category: '',
         title: '',
@@ -30,6 +60,15 @@ export default function UploadForm({ isOpen, onClose }) {
         price: '',
         isAnonymous: false
     });
+
+    const GR_CENTER = { lat: -34.6083, lng: -58.9392 };
+
+    // Set initial location when opening
+    React.useEffect(() => {
+        if (isOpen && !location) {
+            setLocation(userLocation || GR_CENTER);
+        }
+    }, [isOpen, userLocation]);
 
     if (!isOpen) return null;
 
@@ -74,8 +113,8 @@ export default function UploadForm({ isOpen, onClose }) {
             barrio: selectedBarrio === 'Todos los Barrios' ? 'Centro' : selectedBarrio,
             author: formData.isAnonymous ? 'Anónimo' : (user?.email?.split('@')[0] || 'Vecino'),
             user_id: user?.id || null,
-            lat: -34.6083 + (Math.random() - 0.5) * 0.01,
-            lng: -58.9392 + (Math.random() - 0.5) * 0.01
+            lat: location?.lat || GR_CENTER.lat,
+            lng: location?.lng || GR_CENTER.lng
         };
 
         // Call background creator
@@ -97,34 +136,14 @@ export default function UploadForm({ isOpen, onClose }) {
             setImageFile(null);
             setPreviewUrl(null);
             setLoading(false);
+            setLocation(null);
         }, 500);
     };
 
-    return (
-        <div style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 2000,
-            display: 'flex',
-            alignItems: 'flex-end'
-        }}>
-            <div className="glass-card animate-fade-in" style={{
-                width: '100%',
-                backgroundColor: 'white',
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-                padding: '1.5rem',
-                maxHeight: '90vh',
-                overflowY: 'auto'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>¿Qué encontraste?</h2>
-                    <button onClick={onClose} style={{ border: 'none', background: 'none' }}><X /></button>
-                </div>
-
-                {step === 1 ? (
+    const renderStep = () => {
+        switch (step) {
+            case 1:
+                return (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                         {CATEGORIES.map(cat => (
                             <button
@@ -148,7 +167,28 @@ export default function UploadForm({ isOpen, onClose }) {
                             </button>
                         ))}
                     </div>
-                ) : (
+                );
+            case 2:
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                            Tocá el mapa o arrastrá el pin para marcar la ubicación exacta.
+                        </div>
+                        <div style={{ height: '300px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                            <MapContainer center={location || GR_CENTER} zoom={15} style={{ height: '100%', width: '100%' }}>
+                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                <LocationPicker position={location} setPosition={setLocation} />
+                                <MapRecenter position={location} />
+                            </MapContainer>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => setStep(1)} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>Atrás</button>
+                            <button onClick={() => setStep(3)} className="btn-primary" style={{ flex: 2, justifyContent: 'center' }}>Siguiente</button>
+                        </div>
+                    </div>
+                );
+            case 3:
+                return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div style={{
                             display: 'flex',
@@ -198,7 +238,7 @@ export default function UploadForm({ isOpen, onClose }) {
                                 htmlFor="file-upload"
                                 style={{
                                     width: '100%',
-                                    height: '200px',
+                                    height: '180px',
                                     backgroundColor: '#f1f5f9',
                                     borderRadius: '12px',
                                     display: 'flex',
@@ -254,7 +294,7 @@ export default function UploadForm({ isOpen, onClose }) {
                             placeholder="Describe lo que viste..."
                             value={formData.description}
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', height: '100px' }}
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', height: '80px' }}
                         />
 
                         {(formData.category === 'Precios Bajos' || formData.category === 'Servicios/Changas') && (
@@ -276,16 +316,49 @@ export default function UploadForm({ isOpen, onClose }) {
                             Publicar de forma anónima
                         </label>
 
-                        <button
-                            className="btn-primary"
-                            style={{ justifyContent: 'center', marginTop: '1rem', padding: '1rem' }}
-                            onClick={handleSubmit}
-                            disabled={loading}
-                        >
-                            {loading ? 'Subiendo...' : <><Send size={18} /> Publicar Ahora</>}
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => setStep(2)} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>Atrás</button>
+                            <button
+                                className="btn-primary"
+                                style={{ flex: 2, justifyContent: 'center' }}
+                                onClick={handleSubmit}
+                                disabled={loading}
+                            >
+                                {loading ? 'Subiendo...' : <><Send size={18} /> Publicar Ahora</>}
+                            </button>
+                        </div>
                     </div>
-                )}
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'flex-end'
+        }}>
+            <div className="glass-card animate-fade-in" style={{
+                width: '100%',
+                backgroundColor: 'white',
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                padding: '1.5rem',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>¿Qué encontraste?</h2>
+                    <button onClick={onClose} style={{ border: 'none', background: 'none' }}><X /></button>
+                </div>
+
+                {renderStep()}
             </div>
         </div>
     );
