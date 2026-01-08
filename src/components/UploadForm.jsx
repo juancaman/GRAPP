@@ -109,20 +109,25 @@ export default function UploadForm({ isOpen, onClose }) {
             }
 
             if (data && data.length > 0) {
+                // Manually add the new post to the local state for instant feedback
                 setPosts(prev => [data[0], ...prev]);
+
+                // Close the modal and reset immediately
                 onClose();
-                alert('¡Publicación creada con éxito! 🚀');
-                // Reset form
-                setFormData({
-                    category: '',
-                    title: '',
-                    description: '',
-                    price: '',
-                    isAnonymous: false
-                });
-                setStep(1);
-                setImageFile(null);
-                setPreviewUrl(null);
+
+                // Reset form state for next time
+                setTimeout(() => {
+                    setFormData({
+                        category: '',
+                        title: '',
+                        description: '',
+                        price: '',
+                        isAnonymous: false
+                    });
+                    setStep(1);
+                    setImageFile(null);
+                    setPreviewUrl(null);
+                }, 500);
             } else {
                 throw new Error('No se recibió confirmación del servidor al publicar.');
             }
