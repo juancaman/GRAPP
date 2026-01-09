@@ -1,5 +1,9 @@
+import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { Camera, X, MapPin, Send } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { supabase } from '../supabase/client';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icons in Leaflet + React
