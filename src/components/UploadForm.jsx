@@ -173,8 +173,7 @@ export default function UploadForm({ isOpen, onClose }) {
                 
                 if (detections.length > 0) {
                     setLoading(false);
-                    alert('⚠️ IMAGEN RECHAZADA\n\nNo podemos publicar imágenes que contengan rostros de personas.\n\nRazón: Política de privacidad y protección de datos personales.\n\nPor favor, selecciona una imagen sin personas visibles.');
-                    // Reset form completely
+                    // Reset form FIRST, then alert
                     setFormData({
                         category: '',
                         title: '',
@@ -187,6 +186,10 @@ export default function UploadForm({ isOpen, onClose }) {
                     setPreviewUrl(null);
                     setLocation(null);
                     console.log('❌ Publicación bloqueada: se detectaron rostros - formulario reseteado');
+                    // Alert after reset
+                    setTimeout(() => {
+                        alert('⚠️ IMAGEN RECHAZADA\n\nNo podemos publicar imágenes que contengan rostros de personas.\n\nRazón: Política de privacidad y protección de datos personales.\n\nPor favor, selecciona una imagen sin personas visibles.');
+                    }, 100);
                     return;
                 }
                 
