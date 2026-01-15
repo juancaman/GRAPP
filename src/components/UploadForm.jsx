@@ -79,6 +79,27 @@ export default function UploadForm({ isOpen, onClose }) {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // Validar que sea una imagen
+            if (!file.type.startsWith('image/')) {
+                alert('⚠️ Por favor, selecciona un archivo de imagen.');
+                return;
+            }
+
+            // Validar tamaño (máximo 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('⚠️ La imagen es muy grande. Máximo 5MB.');
+                return;
+            }
+
+            // Validar formato
+            const allowedFormats = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!allowedFormats.includes(file.type)) {
+                alert('⚠️ Formato no soportado. Usa JPEG, PNG, WebP o GIF.');
+                return;
+            }
+
+            console.log(`📸 Archivo seleccionado: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
             setImageFile(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
@@ -103,6 +124,76 @@ export default function UploadForm({ isOpen, onClose }) {
 
         if (!user && !formData.isAnonymous) {
             alert('Debes iniciar sesión para publicar con tu nombre. O elige "Publicar de forma anónima".');
+            return;
+        }
+
+        // FACE DETECTION CHECK - Block if faces detected
+        console.log('[UploadForm] Face Detection Status:', {
+            hasImageFile: !!imageFile,
+            faceApiReady: window.faceApiReady,
+            faceapiExists: !!window.faceapi,
+            faceapiType: typeof window.faceapi
+        });
+        
+        if (imageFile && window.faceApiReady && window.faceapi) {
+            try {
+                setLoading(true);
+                console.log('🔍 Iniciando detección de rostros...');
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                // Load image into canvas
+                const imageLoaded = await new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        try {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx.drawImage(img, 0, 0);
+                            console.log(`✅ Imagen cargada: ${img.width}x${img.height}px`);
+                            resolve(true);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    };
+                    img.onerror = () => reject(new Error('No se pudo cargar la imagen'));
+                    img.src = previewUrl;
+                });
+                
+                if (!imageLoaded) {
+                    throw new Error('Imagen no cargada correctamente');
+                }
+                
+                // Detect faces
+                console.log('👁️ Analizando rostros...');
+                const detections = await window.faceapi.detectAllFaces(canvas);
+                console.log(`✓ Análisis completado: ${detections.length} rostro(s) detectado(s)`);
+                
+                if (detections.length > 0) {
+                    setLoading(false);
+                    alert('⚠️ PRIVACIDAD PROTEGIDA\n\nNo se permiten imágenes que contengan rostros de personas. Esto es para proteger la privacidad y la seguridad de todos.\n\nSi tu imagen contiene un rostro, por favor selecciona otra sin personas visibles.');
+                    console.log('❌ Publicación bloqueada: se detectaron rostros');
+                    return;
+                }
+                
+                console.log('✅ Análisis finalizado: sin rostros detectados. Procediendo...');
+                setLoading(false);
+            } catch (error) {
+                console.error('❌ Error al procesar la imagen:', error);
+                setLoading(false);
+                alert('⚠️ Error al analizar la imagen. Por favor, intenta de nuevo o selecciona otra imagen.');
+                return;
+            }
+        } else if (imageFile && !window.faceApiReady) {
+            // Face API not loaded yet - show warning in console
+            console.warn('[UploadForm] ⚠️ Face API NOT READY yet. Status:', {
+                faceApiReady: window.faceApiReady,
+                faceapiExists: !!window.faceapi,
+                windowKeys: Object.keys(window).filter(k => k.includes('face') || k.includes('Face'))
+            });
+            alert('⚠️ Sistema de privacidad inicializándose... Por favor intenta de nuevo en unos segundos.');
             return;
         }
 

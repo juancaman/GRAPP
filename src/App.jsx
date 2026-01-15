@@ -13,6 +13,19 @@ function AppContent() {
   const [view, setView] = useState('feed');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
+  // Face API se carga globalmente en index.html
+  // App solo verifica que esté listo
+  React.useEffect(() => {
+    const checkFaceApi = setInterval(() => {
+      if (window.faceApiReady) {
+        console.log('[App] ✅ Face API detected as ready');
+        clearInterval(checkFaceApi);
+      }
+    }, 100);
+    
+    return () => clearInterval(checkFaceApi);
+  }, []);
+
   return (
     <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
