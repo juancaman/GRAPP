@@ -23,7 +23,8 @@
   <link rel="manifest" href="/manifest.json" />
   
   <!-- Face API para detección de rostros (Privacidad) -->
-  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.js"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3"></script>
   
   <title>yo te avisé</title>
 </head>
@@ -36,12 +37,22 @@
   <script>
     async function initFaceApi() {
       try {
+        // Esperar a que face-api.js esté disponible
+        const maxAttempts = 20;
+        let attempts = 0;
+        
+        while (typeof faceapi === 'undefined' && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        
         if (typeof faceapi === 'undefined') {
-          console.error('❌ face-api script not loaded');
+          console.error('❌ face-api script not loaded after waiting');
           return;
         }
+        
         console.log('[Face API] Starting initialization...');
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
         
         // Load models
         await Promise.all([
