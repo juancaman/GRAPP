@@ -22,62 +22,12 @@
 
   <link rel="manifest" href="/manifest.json" />
   
-  <!-- Face API para detección de rostros (Privacidad) -->
-  <script async src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.js"></script>
-  <script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3"></script>
-  
   <title>yo te avisé</title>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
-  
-  <!-- Initialize Face API after page load -->
-  <script>
-    async function initFaceApi() {
-      try {
-        // Esperar a que face-api.js esté disponible
-        const maxAttempts = 20;
-        let attempts = 0;
-        
-        while (typeof faceapi === 'undefined' && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-        
-        if (typeof faceapi === 'undefined') {
-          console.error('❌ face-api script not loaded after waiting');
-          return;
-        }
-        
-        console.log('[Face API] Starting initialization...');
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
-        
-        // Load models
-        await Promise.all([
-          faceapi.nets.faceDetectionNet.loadFromUri(MODEL_URL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-          faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL)
-        ]);
-        
-        window.faceApiReady = true;
-        window.faceapi = faceapi;
-        console.log('✅ Face API initialized successfully');
-      } catch (error) {
-        console.error('❌ Face API init error:', error);
-        window.faceApiReady = false;
-      }
-    }
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initFaceApi);
-    } else {
-      initFaceApi();
-    }
-  </script>
 </body>
 
 </html>
