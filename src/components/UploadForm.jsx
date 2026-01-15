@@ -127,15 +127,11 @@ export default function UploadForm({ isOpen, onClose }) {
             return;
         }
 
-        // FACE DETECTION CHECK - Block if faces detected
-        console.log('[UploadForm] Face Detection Status:', {
-            hasImageFile: !!imageFile,
-            faceApiReady: window.faceApiReady,
-            faceapiExists: !!window.faceapi,
-            faceapiType: typeof window.faceapi
-        });
+        // FACE DETECTION CHECK - Temporarily disabled to fix app loading
+        // TODO: Re-enable when face-api loading is stable
+        console.log('[UploadForm] Face detection check skipped (loading face-api from backend)');
         
-        if (imageFile && window.faceApiReady && window.faceapi) {
+        if (false && imageFile && window.faceApiReady && window.faceapi) {
             try {
                 setLoading(true);
                 console.log('🔍 Iniciando detección de rostros...');
@@ -168,7 +164,7 @@ export default function UploadForm({ isOpen, onClose }) {
                 
                 // Detect faces
                 console.log('👁️ Analizando rostros...');
-                const detections = await window.faceapi.detectAllFaces(canvas);
+                const detections = await window.faceapi.detectAllFaces(canvas, new window.faceapi.TinyFaceDetectorOptions());
                 console.log(`✓ Análisis completado: ${detections.length} rostro(s) detectado(s)`);
                 
                 if (detections.length > 0) {

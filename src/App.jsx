@@ -13,51 +13,6 @@ function AppContent() {
   const [view, setView] = useState('feed');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-  // Load Face API on app mount
-  React.useEffect(() => {
-    const loadFaceApi = async () => {
-      try {
-        // Load TensorFlow.js
-        const tfScript = document.createElement('script');
-        tfScript.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0';
-        tfScript.async = true;
-        document.head.appendChild(tfScript);
-
-        // Load face-api.js
-        const faceApiScript = document.createElement('script');
-        faceApiScript.src = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.js';
-        faceApiScript.async = true;
-        
-        faceApiScript.onload = async () => {
-          try {
-            console.log('[Face API] Loading models...');
-            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
-            
-            await Promise.all([
-              window.faceapi.nets.faceDetectionNet.loadFromUri(MODEL_URL),
-              window.faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-              window.faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-              window.faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-              window.faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL)
-            ]);
-            
-            window.faceApiReady = true;
-            console.log('✅ Face API initialized successfully');
-          } catch (error) {
-            console.error('❌ Face API init error:', error);
-            window.faceApiReady = false;
-          }
-        };
-
-        document.head.appendChild(faceApiScript);
-      } catch (error) {
-        console.error('Error loading Face API:', error);
-      }
-    };
-
-    loadFaceApi();
-  }, []);
-
   return (
     <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
