@@ -173,8 +173,20 @@ export default function UploadForm({ isOpen, onClose }) {
                 
                 if (detections.length > 0) {
                     setLoading(false);
-                    alert('⚠️ PRIVACIDAD PROTEGIDA\n\nNo se permiten imágenes que contengan rostros de personas. Esto es para proteger la privacidad y la seguridad de todos.\n\nSi tu imagen contiene un rostro, por favor selecciona otra sin personas visibles.');
-                    console.log('❌ Publicación bloqueada: se detectaron rostros');
+                    alert('⚠️ IMAGEN RECHAZADA\n\nNo podemos publicar imágenes que contengan rostros de personas.\n\nRazón: Política de privacidad y protección de datos personales.\n\nPor favor, selecciona una imagen sin personas visibles.');
+                    // Reset form completely
+                    setFormData({
+                        category: '',
+                        title: '',
+                        description: '',
+                        price: '',
+                        isAnonymous: false
+                    });
+                    setStep(1);
+                    setImageFile(null);
+                    setPreviewUrl(null);
+                    setLocation(null);
+                    console.log('❌ Publicación bloqueada: se detectaron rostros - formulario reseteado');
                     return;
                 }
                 
