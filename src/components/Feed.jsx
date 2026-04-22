@@ -8,6 +8,12 @@ function PostCard({ post }) {
     const [comments, setComments] = React.useState([]);
     const [newComment, setNewComment] = React.useState('');
     const [loadingComments, setLoadingComments] = React.useState(false);
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    // Hydration safe: set isMounted after client-side mount
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Robust authorship check
     const isAuthor = React.useMemo(() => {
@@ -17,6 +23,7 @@ function PostCard({ post }) {
     }, [user, post.user_id]);
 
     const handleReport = async () => {
+        if (typeof window === 'undefined') return;
         const reason = window.prompt('¿Por qué quieres reportar este aviso? (Spam, Inapropiado, Falso, etc.)');
         if (reason) {
             const { success } = await reportPost(post.id, reason);
@@ -26,12 +33,14 @@ function PostCard({ post }) {
     };
 
     const handleShare = () => {
+        if (typeof window === 'undefined') return;
         const text = `¡Ey! Mira este aviso en General Rodríguez:\n\n*${post.title}*\n${post.description}\n\nUbicación: ${post.barrio}\n\nVer más en Yo Te Avisé.`;
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     };
 
     const handleDelete = async () => {
+        if (typeof window === 'undefined') return;
         if (window.confirm('¿Estás seguro de que quieres eliminar este aviso?')) {
             const { success } = await deletePost(post.id);
             if (!success) alert('Hubo un error al eliminar el aviso.');
@@ -79,7 +88,9 @@ function PostCard({ post }) {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     <Clock size={14} />
-                    {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {isMounted && (
+                        <span>{new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    )}
                 </div>
             </div>
 
@@ -178,7 +189,9 @@ function PostCard({ post }) {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                                         <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>{c.author_name}</span>
                                         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                                            {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {isMounted && (
+                                                new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                            )}
                                         </span>
                                     </div>
                                     <p style={{ fontSize: '0.8rem', margin: 0 }}>{c.content}</p>

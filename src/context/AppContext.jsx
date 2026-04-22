@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabase/client';
-
 const AppContext = createContext();
-
 const MOCK_BARRIOS = [
   'Agua de Oro', 'Almirante Brown', 'Altos del Oeste', 'Bicentenario', 'Centro',
   'Dávila', 'El Casco', 'El Nacional', 'El Zorzal', 'Güemes', 'Juan José Sommer',
@@ -124,7 +122,8 @@ export function AppProvider({ children }) {
   }, []);
 
   // Logic for creating posts (Optimistic)
-  const createPost = async (formData, imageFile) => {
+  // Ahora acepta un callback opcional para rechazo de imagen (por privacidad)
+  const createPost = async (formData, imageFile, onImageRejected) => {
     const optimisticId = Date.now();
     const optimisticPost = {
       id: optimisticId,
@@ -141,34 +140,66 @@ export function AppProvider({ children }) {
     const processUpload = async () => {
       try {
         let imageUrl = null;
+        let fileName = null;
+        
         if (imageFile) {
           const fileExt = imageFile.name.split('.').pop();
-          const fileName = `${Date.now()}.${fileExt}`;
+          const timestamp = Date.now();
+          fileName = `${timestamp}.${fileExt}`;
+          
+          console.log(`📤 Subiendo imagen: ${fileName}`);
+          
           const { error: uploadError } = await supabase.storage
             .from('posts')
             .upload(fileName, imageFile);
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error('❌ Error al subir imagen:', uploadError);
+            throw uploadError;
+          }
+          
           const { data: { publicUrl } } = supabase.storage.from('posts').getPublicUrl(fileName);
           imageUrl = publicUrl;
+          console.log(`✅ Imagen subida: ${imageUrl}`);
         }
 
+        console.log(`💾 Insertando post en base de datos...`);
+        
         const { data, error } = await supabase
           .from('posts')
           .insert([{ ...formData, image_url: imageUrl }])
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error al insertar post:', error);
+          throw error;
+        }
+
+        console.log(`✅ Post creado con ID: ${data[0].id}`);
 
         // Replace optimistic post with real one
         setPosts(current =>
           current.map(p => p.id === optimisticId ? data[0] : p)
         );
       } catch (err) {
-        console.error('Background upload failed:', err);
+        // SIMULACIÓN: Forzar rechazo por rostro (elimina este bloque cuando termines de probar)
+        if (typeof onImageRejected === 'function') {
+          const simulateFace = false; // Cambia a false para desactivar la simulación
+          if (simulateFace) {
+            onImageRejected();
+            return;
+          }
+        }
+        console.error('❌ Error en carga de imagen:', err);
         // Remove optimistic post if it failed COMPLETELY
         setPosts(current => current.filter(p => p.id !== optimisticId));
-        alert('No se pudo subir tu aviso. Revisa tu conexión.');
+        // Mostrar mensaje de error específico
+        const errorMessage = err?.message?.includes('face') 
+          ? '⚠️ Tu imagen fue rechazada por contener rostros. Por privacidad, no se permiten fotos con personas.'
+          : err?.message?.includes('inappropriate')
+          ? '⚠️ Tu imagen fue rechazada por contener contenido inapropiado.'
+          : 'No se pudo subir tu aviso. Revisa tu conexión.';
+        alert(errorMessage);
       }
     };
 
@@ -192,13 +223,19 @@ export function AppProvider({ children }) {
     const { error } = await supabase.rpc('increment_votes', { post_id: postId });
 
     if (error) {
-      console.error('Error updating vote:', error);
-      // Rollback optimistic update if error
-      // (Simplified: just refetch or leave as is since it's optimistic)
+      console.error('Error voting:', error);
+      // Rollback optimistic update
+      setPosts(currentPosts =>
+        currentPosts.map(post => {
+          if (post.id === postId) {
+            return { ...post, votes: (post.votes || 0) - 1 };
+          }
+          return post;
+        })
+      );
     }
   };
 
-  // Logic for reporting posts
   const reportPost = async (postId, reason) => {
     const { error } = await supabase
       .from('reports')
@@ -297,6 +334,7 @@ export function AppProvider({ children }) {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+
 }
 
 export const useApp = () => useContext(AppContext);

@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rodríguez Conecta - Social Vecinal Seguro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== VARIABLES RAÍZ ===== */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --cat-precios: #10b981;
+            --cat-seguridad: #ef4444;
+            --cat-servicios: #3b82f6;
+            --cat-basural: #8b5cf6;
+        }
+
+        /* ===== RESET GLOBAL ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== COMPONENTES BASE ===== */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .badge-precios { background-color: var(--cat-precios); }
+        .badge-seguridad { background-color: var(--cat-seguridad); }
+        .badge-servicios { background-color: var(--cat-servicios); }
+        .badge-basural { background-color: var(--cat-basural); }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        /* ===== FAB BUTTON ===== */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 1.5rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 25px -5px rgba(37,99,235,0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+            border: none;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* ===== FILTROS ===== */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            padding: 1.5rem 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-left p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .user-info {
+            text-align: right;
+            font-size: 0.85rem;
+        }
+
+        .feed {
+            padding: 0 20px;
+            padding-bottom: 100px;
+        }
+
+        /* ===== POSTS ===== */
+        .post {
+            glass-card border-radius: var(--radius);
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-category {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .post-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .post-message {
+            font-size: 0.95rem;
+            margin: 0.75rem 0;
+            line-height: 1.6;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin: 0.75rem 0;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .post-actions button {
+            flex: 1;
+        }
+
+        .verified-badge {
+            background: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .hidden-badge {
+            background: #ef4444;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ===== ADMIN PANEL ===== */
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+        }
+
+        .admin-table th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .admin-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* ===== ALERTS ===== */
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* ===== AUTH MODAL ===== */
+        #authModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        #authModal.hidden {
+            display: none;
+        }
+
+        .auth-container {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow);
+        }
+
+        .auth-container h2 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .header-right {
+                width: 100%;
+            }
+
+            .header-left h1 {
+                font-size: 1.5rem;
+            }
+
+            .fab {
+                bottom: 1.5rem;
+                right: 1rem;
+            }
+
+            .modal {
+                max-width: 90vw;
+            }
+        }
+
+        /* ===== LOADING ===== */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <div class="header-left">
+            <h1>🏘️ Rodríguez Conecta</h1>
+            <p id="headerSubtitle">Conecta con tus vecinos</p>
+        </div>
+        <div class="header-right" id="headerActions">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- ===== AUTH MODAL (Clerk) ===== -->
+    <div id="authModal">
+        <div class="auth-container">
+            <h2>Inicia sesión</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Usa tu email para acceder a Rodríguez Conecta</p>
+            <div id="clerkContainer"></div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div id="mainContent" class="hidden" style="display: none;">
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-category="todos">✨ Todos</button>
+            <button class="filter-btn" data-category="precios">💰 Precios</button>
+            <button class="filter-btn" data-category="seguridad">🚨 Seguridad</button>
+            <button class="filter-btn" data-category="servicios">🔧 Servicios</button>
+            <button class="filter-btn" data-category="basural">♻️ Basural</button>
+        </div>
+
+        <!-- Feed -->
+        <div class="container">
+            <div class="feed" id="feed">
+                <p style="text-align: center; color: var(--text-muted);">Cargando posts...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN PANEL ===== -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="container">
+            <div style="padding: 1.5rem 20px;">
+                <h2>🛡️ Panel de Administración</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Gestiona todos los posts de la comunidad</p>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Categoría</th>
+                            <th>Mensaje</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Cargando...</td></tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-secondary" onclick="exitAdmin()" style="margin-top: 1rem; width: 100%;">Salir del Panel Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== UPLOAD FORM MODAL ===== -->
+    <div id="uploadModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nuevo Aviso</h2>
+                <button class="close-btn" onclick="closeUploadModal()">&times;</button>
+            </div>
+
+            <form id="uploadForm" onsubmit="submitPost(event)">
+                <div class="form-group">
+                    <label>📂 Categoría</label>
+                    <select id="category" required>
+                        <option value="">-- Selecciona una categoría --</option>
+                        <option value="precios">💰 Precios</option>
+                        <option value="seguridad">🚨 Seguridad</option>
+                        <option value="servicios">🔧 Servicios</option>
+                        <option value="basural">♻️ Basural</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>💬 Mensaje</label>
+                    <textarea id="message" placeholder="Cuéntale a tus vecinos..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>📞 Teléfono</label>
+                    <input type="tel" id="phone" placeholder="+54 9 123456..." required pattern="[0-9\s\+\-\(\)]+">
+                    <small style="color: var(--text-muted); margin-top: 4px; display: block;">🔒 Tu teléfono está protegido (solo visible al contactar)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>📷 Foto (opcional)</label>
+                    <input type="file" id="imageFile" accept="image/*">
+                    <small style="color: var(--text-muted); margin-top: 4px; display: block;">Max 5MB, formatos: JPG, PNG, GIF</small>
+                    <div id="uploadProgress" style="display: none; margin-top: 8px;">
+                        <div style="background: #e2e8f0; border-radius: 20px; height: 6px; overflow: hidden;">
+                            <div id="progressBar" style="background: var(--primary); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <small style="color: var(--text-muted); display: block; margin-top: 4px;" id="progressText">Subiendo imagen...</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="anonymous" style="width: auto; cursor: pointer;">
+                        <span>Publicar de forma anónima</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    📤 Publicar Aviso
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== FAB BUTTON ===== -->
+    <button class="fab" onclick="openUploadModal()" id="fabBtn" title="Nuevo aviso">
+        ➕
+    </button>
+
+    <!-- ===== SCRIPTS ===== -->
+    <!-- Clerk CDN -->
+    <script async src="https://cdn.clerk.com/clerk.browser.js?theme=light"></script>
+
+    <script>
+        // ===== CONFIG =====
+        const CONFIG = {
+            apiUrl: '/api/db',
+            categories: {
+                precios: { icon: '💰', label: 'Precios', color: 'badge-precios' },
+                seguridad: { icon: '🚨', label: 'Seguridad', color: 'badge-seguridad' },
+                servicios: { icon: '🔧', label: 'Servicios', color: 'badge-servicios' },
+                basural: { icon: '♻️', label: 'Basural', color: 'badge-basural' }
+            }
+        };
+
+        let currentUser = null;
+        let allPosts = []; // Almacena teléfonos en MEMORIA (no en DOM)
+        let currentImageUrl = null;
+        let currentFilter = 'todos';
+
+        // ===== AUTH (CLERK) =====
+        async function initClerk() {
+            try {
+                // Esperar a que Clerk esté disponible
+                await new Promise(resolve => {
+                    const checkClerk = setInterval(() => {
+                        if (window.Clerk) {
+                            clearInterval(checkClerk);
+                            resolve();
+                        }
+                    }, 100);
+                });
+
+                // Cargar usuario actual
+                await Clerk.load();
+                const user = Clerk.user;
+
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('authModal').classList.add('hidden');
+                    document.getElementById('mainContent').style.display = 'block';
+                    updateHeader();
+                    loadPosts();
+                    setupFilterButtons();
+                    checkAdminAccess();
+                } else {
+                    document.getElementById('authModal').classList.remove('hidden');
+                    document.getElementById('mainContent').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error Clerk:', error);
+            }
+        }
+
+        async function handleSignOut() {
+            try {
+                await Clerk.signOut();
+                currentUser = null;
+                allPosts = [];
+                currentImageUrl = null;
+                document.getElementById('authModal').classList.remove('hidden');
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('adminPanel').classList.remove('active');
+            } catch (error) {
+                console.error('Error sign out:', error);
+            }
+        }
+
+        function updateHeader() {
+            const headerActions = document.getElementById('headerActions');
+            if (currentUser) {
+                const userEmail = currentUser.primaryEmailAddress?.emailAddress || 'Usuario';
+                const userName = currentUser.firstName || userEmail.split('@')[0];
+                
+                headerActions.innerHTML = `
+                    <div class="user-info">
+                        <div style="font-weight: 600;">${userName}</div>
+                        <button class="btn btn-secondary" onclick="handleSignOut()" style="padding: 0.5rem 1rem; font-size: 0.85rem; margin-top: 0.5rem;">
+                            Salir
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== IMAGE UPLOAD (ImgBB) =====
+        async function uploadToImgBB(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${VITE_IMGBB_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al subir imagen');
+                }
+
+                const data = await response.json();
+                return data.data.url;
+            } catch (error) {
+                console.error('Error ImgBB:', error);
+                showAlert('Error al subir la imagen. Intenta sin foto.', 'error');
+                return null;
+            }
+        }
+
+        // ===== CRUD OPERATIONS =====
+        async function callApi(action, data = {}) {
+            try {
+                const token = await Clerk.session?.getToken();
+                if (!token && action !== 'GET_POSTS') {
+                    throw new Error('No autenticado');
+                }
+
+                const response = await fetch(CONFIG.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    },
+                    body: JSON.stringify({ action, ...data })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Error en la solicitud');
+                }
+
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function submitPost(event) {
+            event.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Publicando...';
+
+            try {
+                const category = document.getElementById('category').value;
+                const message = document.getElementById('message').value;
+                const phone = document.getElementById('phone').value;
+                const isAnonymous = document.getElementById('anonymous').checked;
+
+                // Validaciones básicas
+                if (!category || !message || !phone) {
+                    throw new Error('Completa todos los campos requeridos');
+                }
+
+                if (message.length > 500) {
+                    throw new Error('El mensaje es muy largo (máx 500 caracteres)');
+                }
+
+                const result = await callApi('CREATE_POST', {
+                    category,
+                    message,
+                    phone,
+                    image_url: currentImageUrl || null,
+                    is_anonymous: isAnonymous
+                });
+
+                // Almacenar teléfono en memoria (NUNCA en DOM)
+                allPosts.unshift({
+                    ...result.post,
+                    phone: phone // Guardado en memoria, no renderizado
+                });
+
+                showAlert('✅ Aviso publicado correctamente', 'success');
+                closeUploadModal();
+                loadPosts();
+            } catch (error) {
+                showAlert(`❌ ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '📤 Publicar Aviso';
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('¿Eliminar este aviso?')) return;
+
+            try {
+                await callApi('DELETE_POST', { post_id: postId });
+                showAlert('✅ Aviso eliminado', 'success');
+                loadPosts();
+            } catch (error) {
+                showAlert(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                const result = await callApi('GET_POSTS');
+                allPosts = result.posts || [];
+                renderFeed();
+            } catch (error) {
+                console.error('Error al cargar posts:', error);
+                showAlert('Error al cargar los avisos', 'error');
+            }
+        }
+
+        function renderFeed() {
+            const feed = document.getElementById('feed');
+            const filteredPosts = currentFilter === 'todos' 
+                ? allPosts 
+                : allPosts.filter(p => p.category === currentFilter);
+
+            if (filteredPosts.length === 0) {
+                feed.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No hay avisos en esta categoría</p>';
+                return;
+            }
+
+            feed.innerHTML = filteredPosts.map(post => {
+                const isOwner = currentUser?.id === post.user_id;
+                const cat = CONFIG.categories[post.category] || {};
+                const timestamp = new Date(post.created_at).toLocaleDateString('es-AR', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                let actionsHtml = `
+                    <button class="btn btn-secondary" onclick="contactViaWhatsApp(${post.id})" style="flex: 1;">
+                        💬 Contactar
+                    </button>
+                `;
+
+                if (isOwner) {
+                    actionsHtml += `
+                        <button class="btn btn-danger" onclick="deletePost(${post.id})" style="flex: 1;">
+                            🗑️ Eliminar
+                        </button>
+                    `;
+                }
+
+                return `
+                    <div class="post animate-fade-in">
+                        <div class="post-header">
+                            <div class="post-category">
+                                <span class="category-badge ${cat.color}">${cat.icon} ${cat.label}</span>
+                                <span class="post-meta">${timestamp}</span>
+                                ${post.user_email && !post.is_anonymous ? `<span class="post-meta">de ${post.user_email.split('@')[0]}</span>` : '<span class="post-meta">Anónimo</span>'}
+                                ${post.is_verified ? '<span class="verified-badge">✓ Verificado</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="post-message">${escapeHtml(post.message)}</div>
+                        ${post.image_url ? `<img src="${post.image_url}" alt="Foto" class="post-image" onerror="this.style.display='none'">` : ''}
+                        <div class="post-actions">
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== TELÉFONO OCULTO (NUNCA EN DOM) =====
+        function contactViaWhatsApp(postId) {
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            // El teléfono NUNCA fue renderizado en el DOM
+            // Solo lo usamos aquí en memoria para generar el link
+            const phone = post.phone.replace(/\s/g, ''); // Quitar espacios
+            const message = `Hola, te contacto desde Rodríguez Conecta`;
+            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+            window.open(waUrl, '_blank');
+        }
+
+        // ===== ADMIN PANEL =====
+        function checkAdminAccess() {
+            const adminEmail = VITE_ADMIN_EMAIL;
+            const userEmail = currentUser?.primaryEmailAddress?.emailAddress;
+            
+            if (userEmail === adminEmail) {
+                // Mostrar botón admin en header
+                const headerRight = document.querySelector('.header-right');
+                if (headerRight) {
+                    const adminBtn = document.createElement('button');
+                    adminBtn.className = 'btn btn-secondary';
+                    adminBtn.textContent = '🛡️ Admin';
+                    adminBtn.onclick = goToAdmin;
+                    adminBtn.style.padding = '0.5rem 1rem';
+                    adminBtn.style.fontSize = '0.85rem';
+                    headerRight.insertBefore(adminBtn, headerRight.firstChild);
+                }
+            }
+        }
+
+        async function goToAdmin() {
+            try {
+                const result = await callApi('GET_ALL_POSTS');
+                const adminPosts = result.posts || [];
+                
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('adminPanel').classList.add('active');
+                
+                renderAdminTable(adminPosts);
+            } catch (error) {
+                showAlert(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function renderAdminTable(posts) {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = posts.map(post => `
+                <tr>
+                    <td>${escapeHtml(post.user_email.split('@')[0])}</td>
+                    <td>${CONFIG.categories[post.category]?.label || post.category}</td>
+                    <td>${escapeHtml(post.message.substring(0, 50))}...</td>
+                    <td>
+                        ${post.is_verified ? '✓ Verificado' : ''}
+                        ${!post.is_visible ? '<span class="hidden-badge">OCULTO</span>' : ''}
+                    </td>
+                    <td>
+                        <div class="admin-actions">
+                            <button class="btn btn-secondary" onclick="toggleVerified(${post.id}, ${!post.is_verified})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                ${post.is_verified ? 'Desverificar' : 'Verificar'}
+                            </button>
+                            <button class="btn btn-secondary" onclick="toggleVisible(${post.id}, ${!post.is_visible})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                ${post.is_visible ? 'Ocultar' : 'Mostrar'}
+                            </button>
+                            <button class="btn btn-danger" onclick="adminDeletePost(${post.id})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                Eliminar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function toggleVerified(postId, verified) {
+            try {
+                await callApi('TOGGLE_VERIFIED', { post_id: postId, verified });
+                goToAdmin(); // Recargar tabla
+            } catch (error) {
+                showAlert(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function toggleVisible(postId, visible) {
+            try {
+                await callApi('TOGGLE_VISIBLE', { post_id: postId, visible });
+                goToAdmin(); // Recargar tabla
+            } catch (error) {
+                showAlert(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function adminDeletePost(postId) {
+            if (!confirm('¿Eliminar este aviso?')) return;
+            try {
+                await callApi('ADMIN_DELETE_POST', { post_id: postId });
+                goToAdmin();
+            } catch (error) {
+                showAlert(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function exitAdmin() {
+            document.getElementById('adminPanel').classList.remove('active');
+            document.getElementById('mainContent').style.display = 'block';
+            loadPosts();
+        }
+
+        // ===== MODALS =====
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.add('active');
+            currentImageUrl = null;
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('uploadForm').reset();
+            currentImageUrl = null;
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
+
+        // ===== IMAGE HANDLING =====
+        document.getElementById('imageFile')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('La imagen es muy grande (máx 5MB)', 'error');
+                return;
+            }
+
+            document.getElementById('uploadProgress').style.display = 'block';
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            // Simulación de progreso
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+            }, 200);
+
+            const url = await uploadToImgBB(file);
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+
+            if (url) {
+                currentImageUrl = url;
+                progressText.textContent = '✅ Imagen lista para publicar';
+            }
+        });
+
+        // ===== FILTER BUTTONS =====
+        function setupFilterButtons() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.category;
+                    renderFeed();
+                });
+            });
+        }
+
+        // ===== UTILITIES =====
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showAlert(message, type = 'info') {
+            // Podría usar Toasts o simplemente console.log
+            console.log(`[${type}] ${message}`);
+            alert(message);
+        }
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', initClerk);
+    </script>
+</body>
+</html>

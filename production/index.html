@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rodríguez Conecta - Tablero Vecinal Seguro</title>
+    <meta name="description" content="Red vecinal de General Rodríguez: ofertas, alertas de seguridad y servicios locales.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Clerk CDN (Auth vía Email/Password) -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
+    
+    <style>
+        /* ===== VARIABLES RAÍZ ===== */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --cat-precios: #10b981;
+            --cat-seguridad: #ef4444;
+            --cat-servicios: #3b82f6;
+            --cat-basural: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        /* ===== RESET GLOBAL ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding: 0;
+        }
+
+        /* ===== COMPONENTES BASE ===== */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.8;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .badge-precios { background-color: var(--cat-precios); }
+        .badge-seguridad { background-color: var(--cat-seguridad); }
+        .badge-servicios { background-color: var(--cat-servicios); }
+        .badge-basural { background-color: var(--cat-basural); }
+        .badge-verified { background-color: var(--warning); }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            padding: 1rem 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-left p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-badge {
+            background: var(--warning);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ===== FILTROS ===== */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .file-input-label:hover {
+            background: #e2e8f0;
+            border-color: var(--primary);
+        }
+
+        #imagenInput {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            border-radius: 10px;
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+        }
+
+        /* ===== CONTAINER Y FEED ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .feed {
+            padding: 1rem 0;
+            padding-bottom: 100px;
+        }
+
+        /* ===== POSTS/AVISOS ===== */
+        .post {
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .post-category-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .post-date {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .post-content {
+            margin-bottom: 1rem;
+        }
+
+        .post-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .post-text {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .contact-btn {
+            background: #25D366;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .contact-btn:hover {
+            background: #20ba5a;
+            transform: translateY(-1px);
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .admin-btn {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+
+        /* ===== FAB BUTTON ===== */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 1.5rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 25px -5px rgba(37,99,235,0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+            border: none;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .fab.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 3rem 1rem;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* ===== ADMIN PANEL ===== */
+        .admin-panel {
+            background: linear-gradient(135deg, #f59e0b20, #fbbf2420);
+            border: 2px solid var(--warning);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-panel h2 {
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            z-index: 3000;
+            max-width: 300px;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--primary); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal {
+                max-width: 100%;
+            }
+
+            .fab {
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER CON AUTENTICACIÓN ===== -->
+    <div class="header">
+        <div class="header-left">
+            <h1>📍 Rodríguez Conecta</h1>
+            <p>General Rodríguez, Argentina</p>
+        </div>
+        <div class="header-right" id="headerRight">
+            <button class="btn-secondary btn-small" id="signInBtn">Ingresar</button>
+        </div>
+    </div>
+
+    <!-- ===== FILTROS ===== -->
+    <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-filter="todos">Todos</button>
+        <button class="filter-btn" data-filter="precios">🛒 Precios</button>
+        <button class="filter-btn" data-filter="seguridad">🚨 Seguridad</button>
+        <button class="filter-btn" data-filter="servicios">🔧 Servicios</button>
+        <button class="filter-btn" data-filter="basural">♻️ Basural</button>
+    </div>
+
+    <!-- ===== PANEL ADMIN ===== -->
+    <div class="container" id="adminPanelContainer" style="display: none;">
+        <div class="admin-panel">
+            <h2>🛡️ Panel de Moderación</h2>
+            <div class="admin-controls">
+                <button class="btn-secondary" id="showAllPostsBtn">Mostrar todos</button>
+                <button class="btn-secondary" id="filterHiddenBtn">Ver ocultos</button>
+                <button class="btn-secondary" id="exportDataBtn">Exportar datos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FEED ===== -->
+    <div class="container">
+        <div class="feed" id="feed">
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <p>No hay avisos todavía.<br>¡Sé el primero en compartir! 👇</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FAB BUTTON ===== -->
+    <button class="fab" id="fabBtn" title="Crear aviso">✏️</button>
+
+    <!-- ===== MODAL (Nuevo post) ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nuevo Aviso</h2>
+                <button class="close-btn" id="closeBtn">✕</button>
+            </div>
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="postTitle">Título *</label>
+                    <input type="text" id="postTitle" placeholder="Ej: Oferta en panadería" required maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="postCategory">Categoría *</label>
+                    <select id="postCategory" required>
+                        <option value="">Selecciona una categoría</option>
+                        <option value="precios">🛒 Precios (Ofertas, descuentos)</option>
+                        <option value="seguridad">🚨 Seguridad (Alertas, delitos)</option>
+                        <option value="servicios">🔧 Servicios (Reparaciones, trabajos)</option>
+                        <option value="basural">♻️ Basural (Residuos, limpieza)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="postDescription">Descripción *</label>
+                    <textarea id="postDescription" placeholder="Describe tu aviso..." required maxlength="500"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="postPhone">Teléfono WhatsApp *</label>
+                    <input type="tel" id="postPhone" placeholder="+54 9 11 XXXX-XXXX" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="imagenInput">Imagen (opcional)</label>
+                    <label class="file-input-label" for="imagenInput">📸 Selecciona una imagen (JPG, PNG, máx 5MB)</label>
+                    <input type="file" id="imagenInput" accept="image/jpeg,image/png" />
+                    <img id="imagenPreview" class="image-preview" style="display: none;">
+                    <div id="imageUploadStatus" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;"></div>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+                    <input type="checkbox" id="postAnonymous" />
+                    <label for="postAnonymous" style="margin: 0; font-weight: 400;">Publicar de forma anónima</label>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitPostBtn">📤 Publicar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // ========== CONFIG ==========
+        // ✅ CREDENCIALES COMPLETADAS
+        const CONFIG = {
+            API_BASE: 'http://localhost:8888/.netlify/functions/api', // Cambiar en producción
+            CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_cmVuZXdpbmctdW5pY29ybi0xNS5jbGVyay5hY2NvdW50cy5kZXYk', // ✅ Activo
+            ADMIN_EMAIL: import.meta.env.VITE_ADMIN_EMAIL || 'pablobenitezx@gmail.com', // ✅ Admin activo
+            IMGBB_API_KEY: import.meta.env.VITE_IMGBB_API_KEY || '291ce1ef2ca265a8864431005ead7605', // ✅ Activo
+
+            CATEGORIAS: {
+                precios: { label: 'Precios', badge: 'badge-precios', emoji: '🛒' },
+                seguridad: { label: 'Seguridad', badge: 'badge-seguridad', emoji: '🚨' },
+                servicios: { label: 'Servicios', badge: 'badge-servicios', emoji: '🔧' },
+                basural: { label: 'Basural', badge: 'badge-basural', emoji: '♻️' }
+            }
+        };
+
+        // ========== ESTADO GLOBAL ==========
+        let appState = {
+            currentUser: null,
+            isAdmin: false,
+            posts: [],
+            filtroActivo: 'todos',
+            isLoading: false,
+            imagenSeleccionada: null,
+            showHiddenPosts: false
+        };
+
+        // ========== ELEMENTOS DOM ==========
+        const fabBtn = document.getElementById('fabBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const closeBtn = document.getElementById('closeBtn');
+        const postForm = document.getElementById('postForm');
+        const feed = document.getElementById('feed');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const headerRight = document.getElementById('headerRight');
+        const imagenInput = document.getElementById('imagenInput');
+        const imagenPreview = document.getElementById('imagenPreview');
+        const imageUploadStatus = document.getElementById('imageUploadStatus');
+        const adminPanelContainer = document.getElementById('adminPanelContainer');
+
+        // ========== AUTH (CLERK) ==========
+        async function initClerk() {
+            try {
+                const publishableKey = CONFIG.CLERK_PUBLISHABLE_KEY;
+                await Clerk.load(publishableKey);
+                console.log('Clerk cargado exitosamente');
+                checkAuth();
+                setupAuthListeners();
+            } catch (error) {
+                console.error('Error inicializando Clerk:', error);
+                showToast('Error de autenticación. Recarga la página.', 'error');
+            }
+        }
+
+        function checkAuth() {
+            if (typeof Clerk === 'undefined') {
+                console.warn('[AUTH] Clerk no está disponible aún');
+                return;
+            }
+            const user = Clerk.user;
+            if (user) {
+                appState.currentUser = {
+                    id: user.id,
+                    email: user.primaryEmailAddress?.emailAddress,
+                    name: user.firstName || 'Usuario'
+                };
+                appState.isAdmin = appState.currentUser.email === CONFIG.ADMIN_EMAIL;
+                updateHeaderAuth();
+                updateAdminPanel();
+                fabBtn.classList.remove('disabled');
+            } else {
+                appState.currentUser = null;
+                appState.isAdmin = false;
+                updateHeaderAuth();
+                updateAdminPanel();
+                fabBtn.classList.add('disabled');
+            }
+        }
+
+        function updateHeaderAuth() {
+            const user = appState.currentUser;
+            if (user) {
+                headerRight.innerHTML = `
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">👤 ${escapeHTML(user.name)}</span>
+                    ${appState.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}
+                    <button class="btn-secondary btn-small" id="signOutBtn">Salir</button>
+                `;
+                document.getElementById('signOutBtn').addEventListener('click', logout);
+            } else {
+                headerRight.innerHTML = '<button class="btn-secondary btn-small" id="signInBtn">Ingresar</button>';
+                document.getElementById('signInBtn').addEventListener('click', login);
+            }
+        }
+
+        function setupAuthListeners() {
+            if (typeof Clerk === 'undefined') return;
+            Clerk.addListener(({ session }) => {
+                checkAuth();
+                if (session) {
+                    cargarPosts();
+                }
+            });
+        }
+
+        function login() {
+            if (typeof Clerk === 'undefined') {
+                showToast('Fallo cargando autenticación', 'error');
+                return;
+            }
+            Clerk.openSignIn({
+                appearance: { elements: { rootBox: { padding: '0' } } }
+            });
+        }
+
+        function logout() {
+            if (typeof Clerk === 'undefined') return;
+            Clerk.signOut();
+        }
+
+        // ========== IMG UPLOAD (IMGBB) ==========
+        imagenInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validar tamaño (máx 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Imagen muy grande (máx 5MB)', 'error');
+                return;
+            }
+
+            // Preview local
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagenPreview.src = event.target.result;
+                imagenPreview.style.display = 'block';
+                appState.imagenSeleccionada = file;
+                imageUploadStatus.textContent = '✓ Imagen seleccionada';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function subirImagenImgBB(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('key', CONFIG.IMGBB_API_KEY);
+
+            try {
+                imageUploadStatus.textContent = '⏳ Subiendo imagen...';
+                const response = await fetch('https://api.imgbb.com/1/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error subiendo imagen');
+                }
+
+                const data = await response.json();
+                imageUploadStatus.textContent = '✓ Imagen subida correctamente';
+                return data.data.url;
+            } catch (error) {
+                console.error('Error en ImgBB:', error);
+                imageUploadStatus.textContent = '✗ Error subiendo imagen';
+                showToast('Error al subir la imagen', 'error');
+                throw error;
+            }
+        }
+
+        // ========== FEED ==========
+        async function cargarPosts() {
+            try {
+                appState.isLoading = true;
+                const response = await apiCall('GET', '/api/posts', null);
+                appState.posts = response || [];
+                renderizarPosts();
+            } catch (error) {
+                console.error('Error cargando posts:', error);
+                showToast('Error al cargar los avisos', 'error');
+            } finally {
+                appState.isLoading = false;
+            }
+        }
+
+        function renderizarPosts() {
+            let postsFiltrados = appState.posts;
+
+            // Filtrar por categoría
+            if (appState.filtroActivo !== 'todos') {
+                postsFiltrados = postsFiltrados.filter(p => p.category === appState.filtroActivo);
+            }
+
+            // Mostrar solo visibles (a menos que sea admin filtrando ocultos)
+            if (!appState.showHiddenPosts) {
+                postsFiltrados = postsFiltrados.filter(p => p.is_visible !== false);
+            }
+
+            // Ordenar por fecha descendente
+            postsFiltrados.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            if (postsFiltrados.length === 0) {
+                feed.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>${appState.filtroActivo === 'todos' ? 'No hay avisos todavía.' : 'No hay avisos en esta categoría.'}<br>¡Sé el primero en compartir! 👇</p>
+                    </div>
+                `;
+                return;
+            }
+
+            feed.innerHTML = postsFiltrados.map(post => crearPostHTML(post)).join('');
+        }
+
+        function crearPostHTML(post) {
+            const cat = CONFIG.CATEGORIAS[post.category];
+            const fecha = new Date(post.created_at);
+            const fechaCorta = fecha.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+            const isOwner = appState.currentUser && appState.currentUser.id === post.author_id;
+            const isVerified = post.is_verified;
+            const isHidden = post.is_visible === false;
+
+            let html = `
+                <div class="post animate-fade-in" data-post-id="${post.id}">
+                    <div class="post-header">
+                        <div class="post-meta">
+                            <div class="post-category-row">
+                                <span class="category-badge ${cat.badge}">${cat.emoji} ${cat.label}</span>
+                                ${isVerified ? '<span class="category-badge badge-verified">✓ Verificado</span>' : ''}
+                                ${isHidden ? '<span class="category-badge" style="background: var(--danger);">🙈 Oculto</span>' : ''}
+                            </div>
+                            <div>
+                                <div class="post-author">${post.is_anonymous ? '👤 Anónimo' : escapeHTML(post.author_name)}</div>
+                                <div class="post-date">${fechaCorta}</div>
+                            </div>
+                        </div>
+                    </div>
+            `;
+
+            // Imagen
+            if (post.image_url) {
+                html += `<img src="${post.image_url}" alt="Imagen del aviso" class="post-image" onerror="this.style.display='none';">`;
+            }
+
+            // Contenido
+            html += `
+                    <div class="post-content">
+                        <div class="post-title">${escapeHTML(post.title)}</div>
+                        <p class="post-text">${escapeHTML(post.description)}</p>
+                    </div>
+                    <div class="post-footer">
+                        <div class="post-actions">
+                            <button class="contact-btn" onclick="abrirWhatsApp('${post.phone}')">📲 Contactar</button>
+            `;
+
+            // Botón eliminar (solo para dueño)
+            if (isOwner) {
+                html += `<button class="btn-secondary btn-small delete-btn" onclick="eliminarPost(${post.id})">🗑️ Eliminar</button>`;
+            }
+
+            html += `
+                        </div>
+            `;
+
+            // Admin actions
+            if (appState.isAdmin) {
+                html += `
+                        <div class="admin-actions">
+                            <button class="btn-secondary admin-btn" onclick="toggleVerified(${post.id}, ${!isVerified})">
+                                ${isVerified ? '❌' : '✓'}
+                            </button>
+                            <button class="btn-secondary admin-btn" onclick="toggleHidden(${post.id}, ${!isHidden})">
+                                ${isHidden ? '👁️' : '🙈'}
+                            </button>
+                            <button class="btn-secondary admin-btn btn-danger" onclick="deletePostAdmin(${post.id})">🗑️</button>
+                        </div>
+                `;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // ========== CRUD ==========
+        async function crearPost(e) {
+            e.preventDefault();
+
+            if (!appState.currentUser) {
+                showToast('Debes ingresar para publicar', 'error');
+                return;
+            }
+
+            const title = document.getElementById('postTitle').value.trim();
+            const category = document.getElementById('postCategory').value;
+            const description = document.getElementById('postDescription').value.trim();
+            const phone = document.getElementById('postPhone').value.trim();
+            const isAnonymous = document.getElementById('postAnonymous').checked;
+
+            if (!title || !category || !description || !phone) {
+                showToast('Completa todos los campos obligatorios', 'error');
+                return;
+            }
+
+            try {
+                const submitBtn = document.getElementById('submitPostBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Publicando...';
+
+                // Subir imagen si existe
+                let imageURL = null;
+                if (appState.imagenSeleccionada) {
+                    imageURL = await subirImagenImgBB(appState.imagenSeleccionada);
+                }
+
+                // Crear post
+                const newPost = {
+                    title,
+                    category,
+                    description,
+                    phone,
+                    is_anonymous: isAnonymous,
+                    image_url: imageURL
+                };
+
+                await apiCall('POST', '/api/posts', newPost);
+                showToast('✅ Aviso publicado correctamente', 'success');
+                cerrarModal();
+                cargarPosts();
+            } catch (error) {
+                console.error('Error creando post:', error);
+                showToast('Error publicando el aviso', 'error');
+            } finally {
+                const submitBtn = document.getElementById('submitPostBtn');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📤 Publicar';
+            }
+        }
+
+        async function eliminarPost(postId) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este aviso?')) return;
+
+            try {
+                await apiCall('DELETE', `/api/posts/${postId}`, null);
+                showToast('Aviso eliminado', 'success');
+                cargarPosts();
+            } catch (error) {
+                console.error('Error eliminando post:', error);
+                showToast('Error al eliminar', 'error');
+            }
+        }
+
+        async function toggleVerified(postId, verified) {
+            try {
+                await apiCall('PATCH', `/api/posts/${postId}/verify`, { is_verified: verified });
+                cargarPosts();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al actualizar', 'error');
+            }
+        }
+
+        async function toggleHidden(postId, hidden) {
+            try {
+                await apiCall('PATCH', `/api/posts/${postId}/hide`, { is_visible: !hidden });
+                cargarPosts();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al actualizar', 'error');
+            }
+        }
+
+        async function deletePostAdmin(postId) {
+            if (!confirm('¿Eliminar este aviso?')) return;
+            try {
+                await apiCall('DELETE', `/api/posts/${postId}/admin`, null);
+                cargarPosts();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al eliminar', 'error');
+            }
+        }
+
+        // ========== API HELPER ==========
+        async function apiCall(method, endpoint, body) {
+            const token = await getClerkToken();
+
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token || ''}`
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(`${CONFIG.API_BASE}${endpoint}`, options);
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Error de API' }));
+                throw new Error(error.error || 'Error de API');
+            }
+
+            return await response.json();
+        }
+
+        async function getClerkToken() {
+            if (typeof Clerk === 'undefined') {
+                console.warn('[TOKEN] Clerk no disponible');
+                return null;
+            }
+            try {
+                const session = Clerk.session;
+                if (!session) return null;
+                return await session.getToken();
+            } catch (error) {
+                console.error('Error obteniendo token:', error);
+                return null;
+            }
+        }
+
+        // ========== UI ==========
+        function abrirModal() {
+            if (!appState.currentUser) {
+                showToast('Debes ingresar para publicar', 'error');
+                return;
+            }
+            modalOverlay.classList.add('active');
+            postForm.reset();
+            imagenPreview.style.display = 'none';
+            imageUploadStatus.textContent = '';
+            appState.imagenSeleccionada = null;
+            document.getElementById('postTitle').focus();
+        }
+
+        function cerrarModal() {
+            modalOverlay.classList.remove('active');
+            postForm.reset();
+        }
+
+        function abrirWhatsApp(phone) {
+            // CLAVE DE SEGURIDAD: Teléfono NUNCA está en el HTML renderizado
+            // Se accede dinámicamente al hacer click
+            const telefonoLimpio = phone.replace(/\D/g, '');
+            const mensaje = encodeURIComponent('Hola, vi tu aviso en Rodríguez Conecta.');
+            window.open(`https://wa.me/${telefonoLimpio}?text=${mensaje}`, '_blank');
+        }
+
+        function updateAdminPanel() {
+            if (appState.isAdmin) {
+                adminPanelContainer.style.display = 'block';
+            } else {
+                adminPanelContainer.style.display = 'none';
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function escapeHTML(text) {
+            if (!text) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ========== EVENT LISTENERS ==========
+        fabBtn.addEventListener('click', abrirModal);
+        closeBtn.addEventListener('click', cerrarModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) cerrarModal();
+        });
+        postForm.addEventListener('submit', crearPost);
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                appState.filtroActivo = btn.dataset.filter;
+                renderizarPosts();
+            });
+        });
+
+        // Admin buttons
+        document.getElementById('showAllPostsBtn')?.addEventListener('click', () => {
+            appState.showHiddenPosts = false;
+            renderizarPosts();
+        });
+
+        document.getElementById('filterHiddenBtn')?.addEventListener('click', () => {
+            appState.showHiddenPosts = true;
+            renderizarPosts();
+        });
+
+        document.getElementById('exportDataBtn')?.addEventListener('click', () => {
+            const dataStr = JSON.stringify(appState.posts, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `posts_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        });
+
+        // ========== INICIALIZACIÓN ==========
+        window.addEventListener('load', async () => {
+            console.log('[INIT] Página completamente cargada');
+            
+            // Verificar que Clerk está disponible
+            if (typeof Clerk === 'undefined') {
+                console.error('[ERROR] Clerk no cargó. Verifica tu conexión a Internet.');
+                showToast('Error: No se pudo cargar Clerk. Intenta recargar.', 'error');
+                return;
+            }
+            
+            console.log('[INIT] Clerk disponible, inicializando...');
+            try {
+                await initClerk();
+                console.log('[INIT] Clerk inicializado correctamente');
+                
+                // Cargar posts después de que Clerk esté listo
+                setTimeout(() => cargarPosts(), 500);
+            } catch (error) {
+                console.error('[ERROR] Fallo en inicialización:', error);
+            }
+        });
+
+        // Recargar posts cada 30 segundos
+        setInterval(() => {
+            if (!appState.isLoading) cargarPosts();
+        }, 30000);
+    </script>
+</body>
+</html>

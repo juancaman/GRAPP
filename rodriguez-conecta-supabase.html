@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rodríguez Conecta - Red Vecinal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== VARIABLES RAÍZ ===== */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --background: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --cat-precios: #10b981;
+            --cat-seguridad: #ef4444;
+            --cat-servicios: #3b82f6;
+            --cat-basural: #8b5cf6;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding: 0;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .badge-precios { background-color: var(--cat-precios); }
+        .badge-seguridad { background-color: var(--cat-seguridad); }
+        .badge-servicios { background-color: var(--cat-servicios); }
+        .badge-basural { background-color: var(--cat-basural); }
+        .badge-verificado { background-color: #06b6d4; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 1.5rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 25px -5px rgba(37,99,235,0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+            border: none;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            padding: 1.5rem 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-left p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .user-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .feed {
+            padding: 0 20px;
+            padding-bottom: 100px;
+        }
+
+        .aviso {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: var(--radius);
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .aviso-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .aviso-badge-con-nombre {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .aviso-nombre {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .aviso-fecha {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .aviso-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin: 0.75rem 0;
+        }
+
+        .aviso-content {
+            margin-bottom: 1rem;
+        }
+
+        .aviso-texto {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .aviso-footer {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .whatsapp-btn:hover {
+            background: #20ba5a;
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem 1rem;
+        }
+
+        .image-upload-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-top: 8px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .admin-table th {
+            background: #f1f5f9;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .admin-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <div class="header-left">
+            <h1>📍 Rodríguez Conecta</h1>
+            <p id="headerSubtitle">General Rodríguez, Argentina</p>
+        </div>
+        <div class="header-right">
+            <div class="user-info" id="userInfo"></div>
+            <button class="btn-secondary" id="authBtn">Entrar</button>
+            <button class="btn-secondary" id="adminBtn" style="display:none;">👨‍⚖️ Admin</button>
+        </div>
+    </div>
+
+    <!-- ===== FILTROS ===== -->
+    <div class="filter-bar" id="filterBar" style="display:none;">
+        <button class="filter-btn active" data-filter="todos">Todos</button>
+        <button class="filter-btn" data-filter="precios">🛒 Precios</button>
+        <button class="filter-btn" data-filter="seguridad">🚨 Seguridad</button>
+        <button class="filter-btn" data-filter="servicios">🔧 Servicios</button>
+        <button class="filter-btn" data-filter="basural">♻️ Basural</button>
+    </div>
+
+    <!-- ===== FEED ===== -->
+    <div class="container">
+        <div class="feed" id="feed">
+            <div class="empty-state">
+                <p>Ingresá para ver los avisos 👇</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FAB BUTTON ===== -->
+    <button class="fab" id="fabBtn" style="display:none;" title="Crear aviso">✏️</button>
+
+    <!-- ===== MODAL AUTH ===== -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Ingresá a Rodríguez Conecta</h2>
+                <button class="close-btn" id="authCloseBtn">✕</button>
+            </div>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="authEmail">Email</label>
+                    <input type="email" id="authEmail" required placeholder="tu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Contraseña</label>
+                    <input type="password" id="authPassword" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <div id="authToggle" style="text-align: center; margin-bottom: 1rem; font-size: 0.85rem;">
+                    ¿No tenés cuenta? <a href="#" id="toggleSignup" style="color: var(--primary); text-decoration: none; font-weight: 600;">Crear una</a>
+                </div>
+                <button type="submit" class="btn-primary" id="authSubmitBtn">Entrar</button>
+                <button type="button" class="btn-secondary" id="demoBtn" style="margin-top: 0.75rem; width: 100%;">Demo (demo@test.com)</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL POST ===== -->
+    <div class="modal-overlay" id="postModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nuevo Aviso</h2>
+                <button class="close-btn" id="postCloseBtn">✕</button>
+            </div>
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="postCategoria">Categoría *</label>
+                    <select id="postCategoria" required>
+                        <option value="">Selecciona una categoría</option>
+                        <option value="precios">🛒 Precios</option>
+                        <option value="seguridad">🚨 Seguridad</option>
+                        <option value="servicios">🔧 Servicios</option>
+                        <option value="basural">♻️ Basural</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="postMensaje">Mensaje *</label>
+                    <textarea id="postMensaje" required placeholder="Describe tu aviso..." maxlength="500"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="postImagen">Foto (opcional)</label>
+                    <input type="file" id="postImagen" accept="image/*">
+                    <img id="postImagePreview" class="image-upload-preview" style="display:none;">
+                </div>
+
+                <button type="submit" class="btn-primary" id="postSubmitBtn">📤 Publicar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL ADMIN ===== -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>👨‍⚖️ Panel Moderador</h2>
+                <button class="close-btn" id="adminCloseBtn">✕</button>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="pending">Pendientes</button>
+                <button class="tab-btn" data-tab="verified">Verificados</button>
+                <button class="tab-btn" data-tab="all">Todos</button>
+            </div>
+
+            <div id="adminContent" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <!-- ===== SUPABASE SDK ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- ===== JAVASCRIPT PRINCIPAL ===== -->
+    <script>
+        // ===== CONFIG SUPABASE =====
+        // ⚠️ REEMPLAZA CON TUS VALORES:
+        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+        const ADMIN_EMAIL = 'admin@ejemplo.com'; // Reemplaza con tu email
+
+        let supabase = null;
+        let currentUser = null;
+        let currentFilter = 'todos';
+        let isAdmin = false;
+
+        // ===== INICIALIZACIÓN =====
+        function initSupabase() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                checkAuth();
+            } catch (e) {
+                console.error('Error inicializando Supabase:', e);
+                alert('⚠️ Configura SUPABASE_URL y SUPABASE_ANON_KEY en el código');
+            }
+        }
+
+        // ===== AUTH =====
+        async function checkAuth() {
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (data.session) {
+                    currentUser = data.session.user;
+                    isAdmin = currentUser.email === ADMIN_EMAIL;
+                    updateUI();
+                    loadPosts();
+                } else {
+                    showAuthModal();
+                }
+            } catch (e) {
+                console.error('Error checking auth:', e);
+                showAuthModal();
+            }
+        }
+
+        async function login(email, password, isSignup = false) {
+            try {
+                const authBtn = document.getElementById('authSubmitBtn');
+                authBtn.disabled = true;
+                authBtn.innerHTML = '<div class="spinner"></div> Cargando...';
+
+                let response;
+                if (isSignup) {
+                    response = await supabase.auth.signUp({ email, password });
+                } else {
+                    response = await supabase.auth.signInWithPassword({ email, password });
+                }
+
+                if (response.error) {
+                    alert('❌ ' + response.error.message);
+                } else {
+                    currentUser = response.data.user;
+                    isAdmin = currentUser.email === ADMIN_EMAIL;
+                    closeAuthModal();
+                    updateUI();
+                    loadPosts();
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            } finally {
+                const authBtn = document.getElementById('authSubmitBtn');
+                authBtn.disabled = false;
+                authBtn.textContent = '🔓 Entrar';
+            }
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            isAdmin = false;
+            updateUI();
+            showAuthModal();
+        }
+
+        // ===== DB & STORAGE =====
+        async function createPost(categoria, mensaje, imageFile, phoneNumber) {
+            if (!currentUser) {
+                alert('Debes estar autenticado');
+                return;
+            }
+
+            try {
+                let imageUrl = null;
+
+                // Upload imagen si existe
+                if (imageFile) {
+                    const fileName = `${currentUser.id}_${Date.now()}_${imageFile.name}`;
+                    const { data, error } = await supabase.storage
+                        .from('images')
+                        .upload(`posts/${fileName}`, imageFile);
+
+                    if (error) {
+                        console.error('Error subiendo imagen:', error);
+                        alert('⚠️ Error subiendo imagen, continuando sin ella...');
+                    } else {
+                        const { data: urlData } = supabase.storage
+                            .from('images')
+                            .getPublicUrl(`posts/${fileName}`);
+                        imageUrl = urlData.publicUrl;
+                    }
+                }
+
+                // Crear post (teléfono se encripta/hash)
+                const { data, error } = await supabase
+                    .from('posts')
+                    .insert({
+                        categoria,
+                        mensaje,
+                        image_url: imageUrl,
+                        phone_hidden: phoneNumber.replace(/\D/g, ''),
+                        user_id: currentUser.id,
+                        user_email: currentUser.email,
+                        is_verified: false,
+                        is_hidden: false
+                    });
+
+                if (error) {
+                    alert('❌ Error publicando: ' + error.message);
+                } else {
+                    alert('✅ Aviso publicado');
+                    closePostModal();
+                    loadPosts();
+                }
+            } catch (e) {
+                alert('❌ Error: ' + e.message);
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('¿Eliminar este aviso?')) return;
+
+            try {
+                const { error } = await supabase
+                    .from('posts')
+                    .delete()
+                    .eq('id', postId);
+
+                if (error) {
+                    alert('❌ Error: ' + error.message);
+                } else {
+                    alert('✅ Aviso eliminado');
+                    loadPosts();
+                }
+            } catch (e) {
+                alert('❌ Error: ' + e.message);
+            }
+        }
+
+        async function updatePostStatus(postId, updates) {
+            try {
+                const { error } = await supabase
+                    .from('posts')
+                    .update(updates)
+                    .eq('id', postId);
+
+                if (error) {
+                    alert('❌ Error: ' + error.message);
+                } else {
+                    loadAdminPosts();
+                }
+            } catch (e) {
+                alert('❌ Error: ' + e.message);
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                document.getElementById('feed').innerHTML = '<div class="empty-state">Cargando...</div>';
+
+                let query = supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('is_hidden', false)
+                    .order('created_at', { ascending: false });
+
+                if (currentFilter !== 'todos') {
+                    query = query.eq('categoria', currentFilter);
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    console.error('Error loading posts:', error);
+                    document.getElementById('feed').innerHTML = '<div class="empty-state">Error cargando avisos</div>';
+                    return;
+                }
+
+                if (data.length === 0) {
+                    document.getElementById('feed').innerHTML = '<div class="empty-state">No hay avisos en esta categoría</div>';
+                    return;
+                }
+
+                document.getElementById('feed').innerHTML = data.map(post => renderPost(post)).join('');
+
+                // Listeners para botones
+                document.querySelectorAll('.whatsapp-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const phoneNumber = btn.dataset.phone;
+                        const message = encodeURIComponent('Hola, vi tu aviso en Rodríguez Conecta.');
+                        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+                    });
+                });
+
+                document.querySelectorAll('.delete-post-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        deletePost(btn.dataset.postId);
+                    });
+                });
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function loadAdminPosts() {
+            try {
+                const tab = document.querySelector('.tab-btn.active').dataset.tab;
+                let query = supabase
+                    .from('posts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (tab === 'pending') {
+                    query = query.eq('is_verified', false).eq('is_hidden', false);
+                } else if (tab === 'verified') {
+                    query = query.eq('is_verified', true).eq('is_hidden', false);
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    console.error('Error loading admin posts:', error);
+                    return;
+                }
+
+                let html = '<table class="admin-table"><thead><tr><th>Usuario</th><th>Categoría</th><th>Mensaje</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+
+                data.forEach(post => {
+                    const cat = { precios: '🛒', seguridad: '🚨', servicios: '🔧', basural: '♻️' }[post.categoria] || '📌';
+                    html += `
+                        <tr>
+                            <td>${escapeHTML(post.user_email)}</td>
+                            <td>${cat} ${post.categoria}</td>
+                            <td>${escapeHTML(post.mensaje.substring(0, 30))}...</td>
+                            <td>${post.is_verified ? '✅ Verificado' : '⏳ Pendiente'} ${post.is_hidden ? '🚫 Oculto' : ''}</td>
+                            <td>
+                                <div class="admin-actions">
+                                    ${!post.is_verified ? `<button class="btn-secondary verify-btn" data-id="${post.id}">Verificar</button>` : ''}
+                                    ${!post.is_hidden ? `<button class="btn-secondary hide-btn" data-id="${post.id}">Ocultar</button>` : `<button class="btn-secondary show-btn" data-id="${post.id}">Mostrar</button>`}
+                                    <button class="btn-danger admin-delete-btn" data-id="${post.id}">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('adminContent').innerHTML = html;
+
+                // Listeners admin
+                document.querySelectorAll('.verify-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        updatePostStatus(btn.dataset.id, { is_verified: true });
+                    });
+                });
+
+                document.querySelectorAll('.hide-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        updatePostStatus(btn.dataset.id, { is_hidden: true });
+                    });
+                });
+
+                document.querySelectorAll('.show-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        updatePostStatus(btn.dataset.id, { is_hidden: false });
+                    });
+                });
+
+                document.querySelectorAll('.admin-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        deletePost(btn.dataset.id);
+                    });
+                });
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        // ===== UI =====
+        function renderPost(post) {
+            const cat = { precios: 'badge-precios', seguridad: 'badge-seguridad', servicios: 'badge-servicios', basural: 'badge-basural' }[post.categoria] || '';
+            const catEmoji = { precios: '🛒', seguridad: '🚨', servicios: '🔧', basural: '♻️' }[post.categoria] || '📌';
+            const fecha = new Date(post.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+            const isOwner = currentUser && currentUser.id === post.user_id;
+
+            let html = `
+                <div class="aviso animate-fade-in">
+                    <div class="aviso-header">
+                        <div class="aviso-badge-con-nombre">
+                            <span class="category-badge ${cat}">${catEmoji} ${post.categoria}</span>
+                            <div>
+                                <div class="aviso-nombre">${post.user_email}</div>
+                                <div class="aviso-fecha">${fecha}</div>
+                            </div>
+                        </div>
+                    </div>
+            `;
+
+            if (post.image_url) {
+                html += `<img src="${post.image_url}" alt="Imagen del aviso" class="aviso-image" onerror="this.style.display='none'">`;
+            }
+
+            html += `
+                    <div class="aviso-content">
+                        <p class="aviso-texto">${escapeHTML(post.mensaje)}</p>
+                    </div>
+                    <div class="aviso-footer">
+                        <button class="whatsapp-btn" data-phone="${post.phone_hidden}">
+                            📲 Contactar
+                        </button>
+            `;
+
+            if (isOwner) {
+                html += `<button class="btn-danger delete-post-btn" data-post-id="${post.id}">🗑️ Eliminar</button>`;
+            }
+
+            html += `</div></div>`;
+
+            return html;
+        }
+
+        function updateUI() {
+            const userInfo = document.getElementById('userInfo');
+            const authBtn = document.getElementById('authBtn');
+            const adminBtn = document.getElementById('adminBtn');
+            const fabBtn = document.getElementById('fabBtn');
+            const filterBar = document.getElementById('filterBar');
+
+            if (currentUser) {
+                userInfo.textContent = currentUser.email.split('@')[0];
+                authBtn.textContent = '🚪 Salir';
+                fabBtn.style.display = 'flex';
+                filterBar.style.display = 'flex';
+                if (isAdmin) {
+                    adminBtn.style.display = 'block';
+                } else {
+                    adminBtn.style.display = 'none';
+                }
+            } else {
+                userInfo.textContent = '';
+                authBtn.textContent = 'Entrar';
+                fabBtn.style.display = 'none';
+                filterBar.style.display = 'none';
+                adminBtn.style.display = 'none';
+            }
+        }
+
+        // ===== EVENT LISTENERS =====
+        document.addEventListener('DOMContentLoaded', () => {
+            initSupabase();
+
+            // Auth
+            document.getElementById('authBtn').addEventListener('click', () => {
+                if (currentUser) {
+                    logout();
+                } else {
+                    showAuthModal();
+                }
+            });
+
+            document.getElementById('authForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('authEmail').value;
+                const password = document.getElementById('authPassword').value;
+                const isSignup = document.getElementById('authSubmitBtn').textContent.includes('Crear');
+                login(email, password, isSignup);
+            });
+
+            document.getElementById('toggleSignup').addEventListener('click', toggleAuthMode);
+            document.getElementById('demoBtn').addEventListener('click', () => {
+                login('demo@test.com', 'demo123456');
+            });
+
+            document.getElementById('authCloseBtn').addEventListener('click', closeAuthModal);
+
+            // Post
+            document.getElementById('fabBtn').addEventListener('click', showPostModal);
+            document.getElementById('postCloseBtn').addEventListener('click', closePostModal);
+
+            document.getElementById('postForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const categoria = document.getElementById('postCategoria').value;
+                const mensaje = document.getElementById('postMensaje').value;
+                const imagenInput = document.getElementById('postImagen');
+                const imageFile = imagenInput.files[0];
+                const phoneNumber = prompt('¿Tu teléfono WhatsApp? (+54 9 11 XXXX-XXXX)');
+
+                if (!phoneNumber) return;
+
+                await createPost(categoria, mensaje, imageFile, phoneNumber);
+            });
+
+            document.getElementById('postImagen').addEventListener('change', previewImage);
+
+            // Filtros
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    loadPosts();
+                });
+            });
+
+            // Admin
+            document.getElementById('adminBtn').addEventListener('click', showAdminModal);
+            document.getElementById('adminCloseBtn').addEventListener('click', closeAdminModal);
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    loadAdminPosts();
+                });
+            });
+        });
+
+        // ===== FUNCIONES AUXILIARES =====
+        function toggleAuthMode(e) {
+            e.preventDefault();
+            const isSignup = document.getElementById('authSubmitBtn').textContent.includes('Crear');
+            if (!isSignup) {
+                document.getElementById('authSubmitBtn').textContent = '📝 Crear cuenta';
+                document.querySelector('#authToggle a').textContent = '¿Tenés cuenta? Ingresá';
+            } else {
+                document.getElementById('authSubmitBtn').textContent = '🔓 Entrar';
+                document.querySelector('#authToggle a').textContent = '¿No tenés cuenta? Crear una';
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('authForm').reset();
+        }
+
+        function showPostModal() {
+            document.getElementById('postModal').classList.add('active');
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').classList.remove('active');
+            document.getElementById('postForm').reset();
+            document.getElementById('postImagePreview').style.display = 'none';
+        }
+
+        function showAdminModal() {
+            document.getElementById('adminModal').classList.add('active');
+            loadAdminPosts();
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('active');
+        }
+
+        function previewImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const preview = document.getElementById('postImagePreview');
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function escapeHTML(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return (text || '').replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>

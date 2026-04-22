@@ -6,7 +6,8 @@ import MapView from './components/MapView';
 import UploadForm from './components/UploadForm';
 import UsefulPhones from './components/UsefulPhones';
 import PharmacyGuide from './components/PharmacyGuide';
-import { Plus, LayoutList, Map as MapIcon, Phone, Pill } from 'lucide-react';
+import Dashboard from './components/Dashboard';
+import { Plus, LayoutList, Map as MapIcon, Phone, Pill, LayoutDashboard } from 'lucide-react';
 import './styles/index.css';
 
 function AppContent() {
@@ -22,6 +23,7 @@ function AppContent() {
         {view === 'map' && <MapView />}
         {view === 'phones' && <UsefulPhones />}
         {view === 'pharmacies' && <PharmacyGuide />}
+        {view === 'dashboard' && <Dashboard />}
       </main>
 
       <div className="fab" onClick={() => setIsUploadOpen(true)}>

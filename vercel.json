@@ -1,11 +1,83 @@
 {
-    "framework": "vite",
-    "buildCommand": "npm run build",
-    "outputDirectory": "dist",
-    "rewrites": [
+  "version": 2,
+  "name": "rodriguez-conecta",
+  "public": true,
+  "env": {
+    "DATABASE_URL": {
+      "description": "PostgreSQL Connection String (Neon)"
+    },
+    "CLERK_PUBLISHABLE_KEY": {
+      "description": "Clerk Publishable Key (público, va en frontend)"
+    },
+    "CLERK_SECRET_KEY": {
+      "description": "Clerk Secret Key (secreto, solo backend)"
+    },
+    "VITE_IMGBB_KEY": {
+      "description": "ImgBB API Key"
+    },
+    "VITE_ADMIN_EMAIL": {
+      "description": "Admin email (user que puede acceder a panel admin)"
+    }
+  },
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --production=false",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "nodeVersion": "18.x",
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "routes": [
+    {
+      "src": "^/api/(.*)",
+      "dest": "api/$1",
+      "methods": ["GET", "POST", "DELETE", "OPTIONS"]
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
         {
-            "source": "/(.*)",
-            "destination": "/"
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
         }
-    ]
+      ]
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }

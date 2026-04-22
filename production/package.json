@@ -1,0 +1,29 @@
+{
+  "name": "rodriguez-conecta",
+  "version": "1.0.0",
+  "description": "Tablero vecinal seguro para General Rodríguez con autenticación Clerk y BD en Neon",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server",
+    "build": "npm install",
+    "start": "npm run build"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.4.0",
+    "@clerk/backend": "^0.38.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": "18.x"
+  },
+  "keywords": [
+    "vecinal",
+    "general-rodriguez",
+    "tablero",
+    "clerk",
+    "neon",
+    "serverless"
+  ],
+  "author": "",
+  "license": "MIT"
+}

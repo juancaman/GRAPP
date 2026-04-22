@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Face API Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+        }
+        button:hover { background: #0056b3; }
+        video, canvas {
+            max-width: 100%;
+            margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Face API Loading</h1>
+        
+        <div id="status-container"></div>
+        
+        <button onclick="testFaceApi()">🧪 Test Face API Status</button>
+        <button onclick="testDetection()">👁️ Test Detection (Webcam)</button>
+        <button onclick="testImage()">🖼️ Test Image Upload</button>
+        
+        <div>
+            <h3>Webcam Preview (for detection test)</h3>
+            <video id="video" width="320" height="240" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+        
+        <div>
+            <h3>Upload an image to test</h3>
+            <input type="file" id="imageInput" accept="image/*">
+            <img id="preview" style="max-width: 100%; display: none;">
+        </div>
+    </div>
+
+    <!-- Load face-api -->
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+    
+    <script>
+        function log(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            container.appendChild(div);
+            console.log(message);
+        }
+
+        function testFaceApi() {
+            const container = document.getElementById('status-container');
+            container.innerHTML = ''; // Clear previous logs
+            
+            log('🔍 Checking Face API Status...', 'info');
+            
+            // Check if face-api is loaded
+            if (typeof faceapi === 'undefined') {
+                log('❌ face-api NOT loaded', 'error');
+                return;
+            }
+            
+            log('✅ face-api script loaded', 'success');
+            
+            // Check models
+            const models = [
+                'faceDetectionNet',
+                'faceLandmark68Net', 
+                'faceRecognitionNet',
+                'faceExpressionNet',
+                'ageGenderNet',
+                'tinyFaceDetector'
+            ];
+            
+            log('\n📋 Checking Model Status:', 'info');
+            
+            models.forEach(model => {
+                const hasNet = faceapi.nets[model] !== undefined;
+                const isLoaded = hasNet && faceapi.nets[model].isLoaded?.() === true;
+                const status = isLoaded ? '✅' : hasNet ? '⏳' : '❌';
+                log(`${status} ${model}: isLoaded=${isLoaded}`, isLoaded ? 'success' : 'info');
+            });
+            
+            log('\n🎯 Testing tiny_face_detector specifically:', 'info');
+            if (faceapi.nets.tinyFaceDetector) {
+                log('✅ tinyFaceDetector exists', 'success');
+                const loaded = faceapi.nets.tinyFaceDetector.isLoaded?.();
+                log(`⏳ tinyFaceDetector.isLoaded() = ${loaded}`, loaded ? 'success' : 'error');
+            } else {
+                log('❌ tinyFaceDetector NOT found', 'error');
+            }
+            
+            log('\n🔧 Attempting to load models from CDN...', 'info');
+            loadModels();
+        }
+        
+        async function loadModels() {
+            try {
+                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
+                log(`📥 Loading from: ${MODEL_URL}`, 'info');
+                
+                await Promise.all([
+                    faceapi.nets.faceDetectionNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL)
+                ]);
+                
+                log('✅ All models loaded successfully!', 'success');
+                window.faceApiReady = true;
+            } catch (error) {
+                log(`❌ Error loading models: ${error.message}`, 'error');
+                log(`📋 Error details: ${error}`, 'error');
+            }
+        }
+        
+        async function testDetection() {
+            log('📹 Starting webcam test...', 'info');
+            
+            if (!window.faceApiReady) {
+                log('⚠️ Models not loaded yet, loading now...', 'info');
+                await loadModels();
+            }
+            
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                
+                log('✅ Webcam access granted', 'success');
+                log('🔍 Analyzing video stream...', 'info');
+                
+                // Detect faces every 500ms
+                const detectInterval = setInterval(async () => {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0);
+                        
+                        try {
+                            const detections = await faceapi.detectAllFaces(canvas);
+                            if (detections.length > 0) {
+                                log(`✅ Detected ${detections.length} face(s)!`, 'success');
+                                clearInterval(detectInterval);
+                                stream.getTracks().forEach(track => track.stop());
+                            }
+                        } catch (e) {
+                            log(`Error during detection: ${e.message}`, 'error');
+                        }
+                    }
+                }, 500);
+                
+                // Stop after 10 seconds
+                setTimeout(() => {
+                    clearInterval(detectInterval);
+                    stream.getTracks().forEach(track => track.stop());
+                    if (log.detectionCount === 0) {
+                        log('⚠️ No faces detected in 10 seconds', 'info');
+                    }
+                }, 10000);
+                
+            } catch (error) {
+                log(`❌ Webcam error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testImage() {
+            log('🖼️ Testing image detection...', 'info');
+            
+            if (!window.faceApiReady) {
+                log('⚠️ Models not loaded yet, loading now...', 'info');
+                await loadModels();
+            }
+            
+            const input = document.getElementById('imageInput');
+            if (!input.files.length) {
+                log('❌ Please select an image first', 'error');
+                return;
+            }
+            
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+                const img = new Image();
+                img.onload = async () => {
+                    const canvas = document.getElementById('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    try {
+                        log(`📊 Analyzing ${file.name} (${img.width}x${img.height}px)...`, 'info');
+                        const detections = await faceapi.detectAllFaces(canvas);
+                        log(`✅ Detection complete: ${detections.length} face(s)`, 'success');
+                        
+                        if (detections.length > 0) {
+                            log('⚠️ Image contains faces and would be BLOCKED', 'error');
+                        } else {
+                            log('✅ Image is SAFE (no faces detected)', 'success');
+                        }
+                    } catch (error) {
+                        log(`❌ Detection error: ${error.message}`, 'error');
+                    }
+                };
+                img.src = e.target.result;
+                document.getElementById('preview').src = e.target.result;
+                document.getElementById('preview').style.display = 'block';
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            log('⏳ Page loaded, checking face-api...', 'info');
+            setTimeout(() => testFaceApi(), 1000);
+        });
+    </script>
+</body>
+</html>

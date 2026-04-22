@@ -1,0 +1,30 @@
+{
+  "name": "rodriguez-conecta",
+  "version": "1.0.0",
+  "description": "Social vecinal seguro para General Rodríguez, Argentina",
+  "main": "api/db.js",
+  "scripts": {
+    "dev": "echo 'Abre index.html en el navegador'",
+    "build": "echo 'No build necesario para frontend'",
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.7.0",
+    "jose": "^5.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": [
+    "social",
+    "community",
+    "general-rodriguez",
+    "argentina",
+    "security"
+  ],
+  "author": "Tu nombre",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

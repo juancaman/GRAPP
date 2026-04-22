@@ -37,6 +37,7 @@ export default function MapView() {
     const center = [-34.6083, -58.9392]; // General Rodríguez center
 
     const handleReport = async (postId) => {
+        if (typeof window === 'undefined') return;
         const reason = window.prompt('¿Por qué quieres reportar este aviso?');
         if (reason) {
             const { success } = await reportPost(postId, reason);

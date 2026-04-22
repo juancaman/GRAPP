@@ -1,3 +1,21 @@
+    // Maneja rechazo de imagen por backend (privacidad)
+    const handleImageRejected = () => {
+        setFormData({
+            category: '',
+            title: '',
+            description: '',
+            price: '',
+            isAnonymous: false
+        });
+        setStep(1);
+        setImageFile(null);
+        setPreviewUrl(null);
+        setLocation(null);
+        setLoading(false);
+        setTimeout(() => {
+            alert('⚠️ IMAGEN RECHAZADA\n\nNo podemos publicar imágenes que contengan rostros de personas.\n\nRazón: Política de privacidad y protección de datos personales.\n\nPor favor, selecciona una imagen sin personas visibles.');
+        }, 100);
+    };
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -131,7 +149,7 @@ export default function UploadForm({ isOpen, onClose }) {
         // TODO: Re-enable when face-api loading is stable
         console.log('[UploadForm] Face detection check skipped (loading face-api from backend)');
         
-        if (false && imageFile && window.faceApiReady && window.faceapi) {
+        if (typeof window !== 'undefined' && imageFile && window.faceApiReady && window.faceapi) {
             try {
                 setLoading(true);
                 console.log('🔍 Iniciando detección de rostros...');
@@ -197,12 +215,12 @@ export default function UploadForm({ isOpen, onClose }) {
                 alert('⚠️ Error al analizar la imagen. Por favor, intenta de nuevo o selecciona otra imagen.');
                 return;
             }
-        } else if (imageFile && !window.faceApiReady) {
+        } else if (imageFile && typeof window !== 'undefined' && !window.faceApiReady) {
             // Face API not loaded yet - show warning in console
             console.warn('[UploadForm] ⚠️ Face API NOT READY yet. Status:', {
                 faceApiReady: window.faceApiReady,
-                faceapiExists: !!window.faceapi,
-                windowKeys: Object.keys(window).filter(k => k.includes('face') || k.includes('Face'))
+                faceapiExists: typeof window !== 'undefined' ? !!window.faceapi : false,
+                windowKeys: typeof window !== 'undefined' ? Object.keys(window).filter(k => k.includes('face') || k.includes('Face')) : []
             });
             alert('⚠️ Sistema de privacidad inicializándose... Por favor intenta de nuevo en unos segundos.');
             return;
@@ -223,8 +241,10 @@ export default function UploadForm({ isOpen, onClose }) {
             lng: location?.lng || GR_CENTER.lng
         };
 
+
         // Call background creator
-        createPost(postToCreate, imageFile);
+        // Si el backend rechaza la imagen, llama handleImageRejected()
+        createPost(postToCreate, imageFile, handleImageRejected);
 
         // CLOSE INSTANTLY
         onClose();

@@ -1,0 +1,47 @@
+# Configuración de Netlify para Rodríguez Conecta
+# Documentación: https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  # Comando de compilación
+  command = "npm install"
+  
+  # Directorio de funciones serverless
+  functions = "netlify/functions"
+  
+  # Directorio a publicar (el sitio estático)
+  publish = "."
+
+# Redirecciones para las rutas de API
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/db:splat"
+  status = 200
+  force = false
+
+# Redirecciones para SPA (Single Page App)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Variables de entorno (también configuralas en el dashboard de Netlify)
+[env]
+  DATABASE_URL = "postgresql://neondb_owner:npg_UaHDyXT4n1FW@ep-orange-water-acckvlrf-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+  CLERK_SECRET_KEY = "sk_test_9EPrr9IHP3aGZLCP8p5XFDO8cN7BWJpPfxGEwwPft8"
+  VITE_ADMIN_EMAIL = "pablobenitezx@gmail.com"
+
+# Configuración de headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.clerk.com https://cdn.jsdelivr.net; connect-src 'self' api.clerk.com https://api.imgbb.com https://*.neon.tech"
+
+# Configuración de límites
+# (Netlify Functions tiene timeout de 26 segundos en el plan gratis)
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@neondatabase/serverless"]
